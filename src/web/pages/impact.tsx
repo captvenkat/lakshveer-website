@@ -2,10 +2,9 @@ import { Link } from "wouter";
 import { SEO, PAGE_TITLES } from "@/components/seo";
 
 interface ImpactEntry {
-  year?: string;
   title: string;
   organization?: string;
-  links?: { label: string; href: string }[];
+  link?: { label: string; href: string };
 }
 
 interface ImpactCategory {
@@ -24,97 +23,129 @@ const ExternalLink = ({ href, children }: { href: string; children: React.ReactN
   </a>
 );
 
-// Impact Data organized by type - EXACT content from task
+// Impact Data - EXACT content from task 17
 const impactCategories: ImpactCategory[] = [
+  {
+    name: "Competition Wins & Recognition",
+    entries: [
+      {
+        title: "Special Mention Winner",
+        organization: "Vedanta × Param Foundation Makeathon",
+        link: { label: "View", href: "#" },
+      },
+      {
+        title: "Top-5 Finalist",
+        organization: "Hardware Hackathon 2.0",
+        link: { label: "View", href: "#" },
+      },
+      {
+        title: "Youngest Finalist",
+        organization: "VibeHack by Emergent",
+        link: { label: "View", href: "#" },
+      },
+      {
+        title: "Youngest Participant",
+        organization: "Yugantar Tech Fest",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
+  {
+    name: "Hackathons & Live Builds",
+    entries: [
+      {
+        title: "RunTogether Hackathon",
+        organization: "shipped live project",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
+  {
+    name: "Invitations & Speaking",
+    entries: [
+      {
+        title: "Special Invite",
+        organization: "Robotics & Hardware Founders Meet",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
+  {
+    name: "Accelerators & Programs",
+    entries: [
+      {
+        title: "Selected",
+        organization: "Delta-2 Cohort, The Residency (USA)",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
+  {
+    name: "Pitches & Investor Exposure",
+    entries: [
+      {
+        title: "Pitched",
+        organization: "South Park Commons",
+        link: { label: "View", href: "#" },
+      },
+      {
+        title: "Pitched",
+        organization: "AI Collective Hyderabad",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
+  {
+    name: "Partnerships",
+    entries: [
+      {
+        title: "Co-creation Agreement",
+        organization: "Lion Circuits",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
+  {
+    name: "Competitions (Advanced Rounds)",
+    entries: [
+      {
+        title: "Shortlisted",
+        organization: "Shark Tank India S5 (Level 2)",
+        link: { label: "View", href: "#" },
+      },
+      {
+        title: "Shortlisted",
+        organization: "ISF Junicorns (Level 3)",
+        link: { label: "View", href: "#" },
+      },
+    ],
+  },
   {
     name: "Grants & Scholarships",
     entries: [
       {
-        year: "2026",
         title: "₹1,00,000 Grant",
         organization: "Malpani Ventures",
-        links: [{ label: "Official Announcement", href: "#" }],
+        link: { label: "View", href: "#" },
       },
       {
-        year: "2026",
-        title: "AI Credits",
+        title: "Grants",
         organization: "AI Grants India",
-        links: [{ label: "Grant Page", href: "#" }],
+        link: { label: "View", href: "#" },
+      },
+      {
+        title: "₹40,000 Creator Micro-Scholarship",
+        link: { label: "View", href: "#" },
       },
     ],
   },
   {
-    name: "Awards & Prizes",
+    name: "Media",
     entries: [
       {
-        year: "2026",
-        title: "Special Prize",
-        organization: "Vedanta × Param Foundation Makeathon",
-        links: [{ label: "Event Page", href: "#" }],
-      },
-      {
-        year: "2024",
-        title: "Prize Winner",
-        organization: "Hitex Kids Business Carnival",
-        links: [{ label: "Event Coverage", href: "#" }],
-      },
-    ],
-  },
-  {
-    name: "Panels & Invited Participation",
-    entries: [
-      {
-        year: "2025",
-        title: "Participant Invite",
-        organization: "Robotics & Hardware Founders Meet",
-        links: [{ label: "Event Page", href: "#" }],
-      },
-    ],
-  },
-  {
-    name: "Workshops Delivered",
-    entries: [
-      {
-        year: "2025",
-        title: "Robotics Workshop",
-        organization: "Corporate Session",
-        links: [{ label: "Session Photos", href: "#" }],
-      },
-      {
-        year: "2025",
-        title: "AI Systems Workshop",
-        organization: "School Program",
-        links: [{ label: "Session Overview", href: "#" }],
-      },
-    ],
-  },
-  {
-    name: "Product Sales",
-    entries: [
-      {
-        title: "CircuitHeroes",
-        organization: "300+ Decks Shipped",
-        links: [{ label: "Website", href: "#" }],
-      },
-      {
-        title: "Ebook",
-        organization: "Copies Sold",
-        links: [{ label: "Download Page", href: "#" }],
-      },
-    ],
-  },
-  {
-    name: "Media Coverage",
-    entries: [
-      {
-        title: "Runtime Magazine",
-        organization: "Feature",
-        links: [{ label: "Article", href: "#" }],
-      },
-      {
-        title: "YouTube",
-        organization: "Hackathon Demo",
-        links: [{ label: "Watch", href: "#" }],
+        title: "Covered twice",
+        organization: "Runtime Magazine",
+        link: { label: "Read", href: "#" },
       },
     ],
   },
@@ -142,51 +173,43 @@ function Impact() {
         </header>
 
         {/* Impact Categories */}
-        <div className="space-y-16 md:space-y-20">
+        <div className="space-y-12 md:space-y-16">
           {impactCategories.map((category) => (
             <section key={category.name}>
-              <h2 className="text-xl md:text-2xl font-semibold mb-8 text-[var(--text-primary)] pb-3 border-b border-[var(--border-subtle)]">
+              <h2 className="text-lg md:text-xl font-semibold mb-6 text-[var(--text-primary)] pb-3 border-b border-[var(--border-subtle)]">
                 {category.name}
               </h2>
               <div className="space-y-0">
                 {category.entries.map((entry, idx) => (
                   <article
                     key={`${entry.title}-${idx}`}
-                    className="py-5 border-b border-[var(--border-subtle)]"
+                    className="py-4 border-b border-[var(--border-subtle)] last:border-b-0"
                   >
                     {/* Main entry line - ledger style */}
-                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-0 mb-3">
-                      {entry.year && (
-                        <>
-                          <span className="font-mono text-sm text-[var(--text-muted)] sm:w-16 shrink-0">
-                            {entry.year}
-                          </span>
-                          <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
-                        </>
-                      )}
-                      <span className="font-semibold text-[var(--text-primary)]">
-                        {entry.title}
-                      </span>
-                      {entry.organization && (
-                        <>
-                          <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
-                          <span className="text-[var(--text-secondary)]">
-                            {entry.organization}
-                          </span>
-                        </>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-0">
+                        <span className="font-semibold text-[var(--text-primary)]">
+                          {entry.title}
+                        </span>
+                        {entry.organization && (
+                          <>
+                            <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
+                            <span className="text-[var(--text-secondary)]">
+                              {entry.organization}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* External link */}
+                      {entry.link && (
+                        <div className="shrink-0">
+                          <ExternalLink href={entry.link.href}>
+                            {entry.link.label}
+                          </ExternalLink>
+                        </div>
                       )}
                     </div>
-
-                    {/* External links */}
-                    {entry.links && entry.links.length > 0 && (
-                      <div className={`flex flex-wrap gap-5 ${entry.year ? 'sm:pl-[calc(4rem+1.5rem)]' : ''}`}>
-                        {entry.links.map((link) => (
-                          <ExternalLink key={link.label} href={link.href}>
-                            {link.label}
-                          </ExternalLink>
-                        ))}
-                      </div>
-                    )}
                   </article>
                 ))}
               </div>
