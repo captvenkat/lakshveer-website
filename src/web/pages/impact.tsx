@@ -2,10 +2,9 @@ import { Link } from "wouter";
 import { SEO, PAGE_TITLES } from "@/components/seo";
 
 interface ImpactEntry {
-  year: string;
+  year?: string;
   title: string;
-  organization: string;
-  context: string;
+  organization?: string;
   links?: { label: string; href: string }[];
 }
 
@@ -25,7 +24,7 @@ const ExternalLink = ({ href, children }: { href: string; children: React.ReactN
   </a>
 );
 
-// Impact Data organized by type
+// Impact Data organized by type - EXACT content from task
 const impactCategories: ImpactCategory[] = [
   {
     name: "Grants & Scholarships",
@@ -34,22 +33,13 @@ const impactCategories: ImpactCategory[] = [
         year: "2026",
         title: "₹1,00,000 Grant",
         organization: "Malpani Ventures",
-        context: "Selected for hardware innovation track",
         links: [{ label: "Official Announcement", href: "#" }],
       },
       {
-        year: "2025",
-        title: "₹25,000 Scholarship",
-        organization: "Tech Foundation",
-        context: "Young innovator scholarship recipient",
-        links: [{ label: "Announcement", href: "#" }],
-      },
-      {
-        year: "2025",
-        title: "₹15,000 Grant",
-        organization: "Maker Movement India",
-        context: "Hardware prototyping grant",
-        links: [{ label: "Event Page", href: "#" }],
+        year: "2026",
+        title: "AI Credits",
+        organization: "AI Grants India",
+        links: [{ label: "Grant Page", href: "#" }],
       },
     ],
   },
@@ -57,81 +47,59 @@ const impactCategories: ImpactCategory[] = [
     name: "Awards & Prizes",
     entries: [
       {
-        year: "2025",
-        title: "First Place",
-        organization: "KBC Young Innovators",
-        context: "National robotics competition winner",
-        links: [
-          { label: "Watch Demo", href: "#" },
-          { label: "Official Results", href: "#" },
-        ],
-      },
-      {
-        year: "2025",
-        title: "Gold Medal",
-        organization: "Science Olympiad",
-        context: "Regional engineering category",
-        links: [{ label: "Announcement", href: "#" }],
+        year: "2026",
+        title: "Special Prize",
+        organization: "Vedanta × Param Foundation Makeathon",
+        links: [{ label: "Event Page", href: "#" }],
       },
       {
         year: "2024",
-        title: "Best Project",
-        organization: "Maker Faire Hyderabad",
-        context: "Featured for autonomous robot project",
-        links: [{ label: "Event Page", href: "#" }],
+        title: "Prize Winner",
+        organization: "Hitex Kids Business Carnival",
+        links: [{ label: "Event Coverage", href: "#" }],
       },
     ],
   },
   {
-    name: "Panels & Invited Talks",
+    name: "Panels & Invited Participation",
     entries: [
       {
-        year: "2026",
-        title: "Panel Speaker",
-        organization: "EdTech Summit",
-        context: "Youth in hardware innovation panel",
-        links: [{ label: "Event Page", href: "#" }],
-      },
-      {
         year: "2025",
-        title: "Keynote",
-        organization: "Young Makers Conference",
-        context: "Building autonomous systems at age 7",
-        links: [{ label: "Watch Talk", href: "#" }],
+        title: "Participant Invite",
+        organization: "Robotics & Hardware Founders Meet",
+        links: [{ label: "Event Page", href: "#" }],
       },
     ],
   },
   {
-    name: "Paid Workshops",
+    name: "Workshops Delivered",
     entries: [
       {
         year: "2025",
         title: "Robotics Workshop",
-        organization: "Delhi Public School",
-        context: "50+ students, full-day hands-on session",
+        organization: "Corporate Session",
+        links: [{ label: "Session Photos", href: "#" }],
       },
       {
         year: "2025",
-        title: "AI Basics Workshop",
-        organization: "Oakridge International",
-        context: "30 students, introduction to computer vision",
+        title: "AI Systems Workshop",
+        organization: "School Program",
+        links: [{ label: "Session Overview", href: "#" }],
       },
     ],
   },
   {
-    name: "Products Sold",
+    name: "Product Sales",
     entries: [
       {
-        year: "2025",
-        title: "LineBot Kit",
-        organization: "Direct Sales",
-        context: "15 units sold to schools and hobbyists",
+        title: "CircuitHeroes",
+        organization: "300+ Decks Shipped",
+        links: [{ label: "Website", href: "#" }],
       },
       {
-        year: "2025",
-        title: "Custom Sensor Module",
-        organization: "B2B",
-        context: "Commissioned by local makerspace",
+        title: "Ebook",
+        organization: "Copies Sold",
+        links: [{ label: "Download Page", href: "#" }],
       },
     ],
   },
@@ -139,18 +107,14 @@ const impactCategories: ImpactCategory[] = [
     name: "Media Coverage",
     entries: [
       {
-        year: "2025",
-        title: "Cover Feature",
-        organization: "Runtime Magazine",
-        context: "Profile on youngest hardware builder",
-        links: [{ label: "Read Article", href: "#" }],
+        title: "Runtime Magazine",
+        organization: "Feature",
+        links: [{ label: "Article", href: "#" }],
       },
       {
-        year: "2025",
-        title: "Interview",
-        organization: "Tech Today Podcast",
-        context: "Episode on youth in robotics",
-        links: [{ label: "Listen", href: "#" }],
+        title: "YouTube",
+        organization: "Hackathon Demo",
+        links: [{ label: "Watch", href: "#" }],
       },
     ],
   },
@@ -165,7 +129,7 @@ function Impact() {
         <header className="mb-16 md:mb-20">
           <Link
             href="/"
-            className="inline-block mb-8 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors duration-150"
+            className="inline-block mb-8 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-opacity duration-150"
           >
             ← Back
           </Link>
@@ -187,32 +151,35 @@ function Impact() {
               <div className="space-y-0">
                 {category.entries.map((entry, idx) => (
                   <article
-                    key={`${entry.year}-${entry.title}-${idx}`}
+                    key={`${entry.title}-${idx}`}
                     className="py-5 border-b border-[var(--border-subtle)]"
                   >
-                    {/* Main entry line */}
-                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-0 mb-2">
-                      <span className="font-mono text-sm text-[var(--text-muted)] sm:w-16 shrink-0">
-                        {entry.year}
-                      </span>
-                      <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
+                    {/* Main entry line - ledger style */}
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-0 mb-3">
+                      {entry.year && (
+                        <>
+                          <span className="font-mono text-sm text-[var(--text-muted)] sm:w-16 shrink-0">
+                            {entry.year}
+                          </span>
+                          <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
+                        </>
+                      )}
                       <span className="font-semibold text-[var(--text-primary)]">
                         {entry.title}
                       </span>
-                      <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
-                      <span className="text-[var(--text-secondary)]">
-                        {entry.organization}
-                      </span>
+                      {entry.organization && (
+                        <>
+                          <span className="hidden sm:inline text-[var(--text-muted)] mx-3">—</span>
+                          <span className="text-[var(--text-secondary)]">
+                            {entry.organization}
+                          </span>
+                        </>
+                      )}
                     </div>
-
-                    {/* Context line */}
-                    <p className="text-sm text-[var(--text-muted)] sm:pl-[calc(4rem+1.5rem)] mb-3">
-                      {entry.context}
-                    </p>
 
                     {/* External links */}
                     {entry.links && entry.links.length > 0 && (
-                      <div className="flex flex-wrap gap-5 sm:pl-[calc(4rem+1.5rem)]">
+                      <div className={`flex flex-wrap gap-5 ${entry.year ? 'sm:pl-[calc(4rem+1.5rem)]' : ''}`}>
                         {entry.links.map((link) => (
                           <ExternalLink key={link.label} href={link.href}>
                             {link.label}
