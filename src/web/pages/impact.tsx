@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { SEO, PAGE_TITLES } from "@/components/seo";
 
 interface ImpactEntry {
   year: string;
@@ -158,6 +159,7 @@ const impactCategories: ImpactCategory[] = [
 function Impact() {
   return (
     <div className="min-h-screen">
+      <SEO title={PAGE_TITLES.impact} />
       <main className="container-main py-16 md:py-24">
         {/* Header */}
         <header className="mb-16 md:mb-20">

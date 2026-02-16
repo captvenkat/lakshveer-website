@@ -1,3 +1,5 @@
+import { SEO, PAGE_TITLES } from "@/components/seo";
+
 interface LeaderCardProps {
   name: string;
   role: string;
@@ -23,6 +25,7 @@ const LeaderCard = ({ name, role, additional }: LeaderCardProps) => (
 function Venture() {
   return (
     <div className="min-h-screen">
+      <SEO title={PAGE_TITLES.venture} />
       <main className="container-main py-16 md:py-24">
         {/* Header */}
         <header className="mb-16 md:mb-20">

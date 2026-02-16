@@ -1,3 +1,5 @@
+import { SEO, PAGE_TITLES } from "@/components/seo";
+
 interface LinkProps {
   href: string;
   children: React.ReactNode;
@@ -71,6 +73,7 @@ const collaborateItems = [
 function Index() {
   return (
     <div className="min-h-screen">
+      <SEO title={PAGE_TITLES.home} />
       <main className="container-main py-16 md:py-24">
         {/* ========== HERO SECTION ========== */}
         <header className="mb-24 md:mb-32">

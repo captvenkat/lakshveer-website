@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEO, PAGE_TITLES } from "@/components/seo";
 
 // ============================================
 // TYPES
@@ -280,6 +281,7 @@ function Admin() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen">
+        <SEO title={PAGE_TITLES.admin} />
         <main className="container-main py-16 md:py-24">
           <div className="max-w-md mx-auto">
             <header className="mb-12 text-center">
@@ -355,6 +357,7 @@ function Admin() {
 
   return (
     <div className="min-h-screen">
+      <SEO title={PAGE_TITLES.admin} />
       <main className="container-main py-8 md:py-12">
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">

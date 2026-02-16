@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEO, PAGE_TITLES } from "@/components/seo";
 
 interface LinkProps {
   href: string;
@@ -101,6 +102,7 @@ function Collaborate() {
 
   return (
     <div className="min-h-screen">
+      <SEO title={PAGE_TITLES.collaborate} />
       <main className="container-main py-16 md:py-24">
         {/* Header */}
         <header className="mb-16 md:mb-20">

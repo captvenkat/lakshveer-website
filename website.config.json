@@ -1,1 +1,17 @@
-{"id":"2unj0l4zbaz6dxmsn5ga3aqfqgsjw9we","name":"My Website","description":"A website built with Runable","url":"https://example.com","ogImage":"/og-image.png","favicon":"/vite.svg","twitter":{"card":"summary_large_image","site":"@runable"},"themeColor":"#000000","previewPort":6418,"previewUrl":"https://6418-iu4ae35p3dl16feqifi9r.e2b.app"}
+{
+  "id": "2unj0l4zbaz6dxmsn5ga3aqfqgsjw9we",
+  "name": "Lakshveer Rao | Hardware + AI Systems Builder",
+  "description": "Building deployable autonomous hardware and AI systems from India. Age 8. Co-Founder of Projects by Laksh.",
+  "url": "https://example.com",
+  "ogImage": "/og-image.png",
+  "favicon": "/favicon.ico",
+  "twitter": {
+    "card": "summary_large_image",
+    "site": "@projectsbylaksh"
+  },
+  "themeColor": "#09090b",
+  "siteName": "Projects by Laksh",
+  "locale": "en_IN",
+  "previewPort": 6418,
+  "previewUrl": "https://6418-iu4ae35p3dl16feqifi9r.e2b.app"
+}
