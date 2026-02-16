@@ -17,34 +17,49 @@ const ExternalLink = ({ href, children }: LinkProps) => (
   </a>
 );
 
-// Plain cyan link without arrow
-const PlainLink = ({ href, children }: LinkProps) => (
-  <a href={href} className="link-plain">
-    {children}
-  </a>
-);
-
-// Selected Systems Data
+// Selected Systems Data - Exact content as specified
 const selectedSystems = [
-  { title: "Autonomous Drone System", description: "Self-navigating quadcopter with obstacle avoidance" },
-  { title: "Smart Irrigation Controller", description: "ML-powered water management for agriculture" },
-  { title: "Voice-Controlled Robot Arm", description: "6-DOF robotic arm with natural language interface" },
-  { title: "Solar Tracking Array", description: "Dual-axis sun tracker with 40% efficiency gain" },
-  { title: "Air Quality Monitor Network", description: "Distributed IoT sensors with real-time mapping" },
-  { title: "Gesture-Based Gaming Console", description: "Motion capture hardware for immersive play" },
+  { 
+    title: "Hardvare", 
+    description: "Hardware execution platform preventing unsafe wiring and invalid logic states.",
+    href: "/systems#hardvare"
+  },
+  { 
+    title: "CircuitHeroes", 
+    description: "Circuit-building trading card game. 300+ decks shipped.",
+    href: "/systems#circuitheroes"
+  },
+  { 
+    title: "Autonomous Grant Agent", 
+    description: "AI agent sourcing, evaluating, and filing global grants.",
+    href: "/systems#grant-agent"
+  },
+  { 
+    title: "Motion-Control Gaming Platform", 
+    description: "Full-body measurable gaming system driven by physical movement.",
+    href: "/systems#motion"
+  },
+  { 
+    title: "Vision-Based Robotics", 
+    description: "OpenCV and edge AI deployments on ESP32 and Raspberry Pi.",
+    href: "/systems#vision"
+  },
+  { 
+    title: "Autonomous Navigation Systems", 
+    description: "GPS-guided and gesture-controlled robotic vehicles.",
+    href: "/systems#navigation"
+  },
 ];
 
-// Impact Data
+// Impact Data - Exact content as specified
 const impactEntries = [
-  { year: "2026", event: "Grant Recipient", detail: "Malpani Ventures", amount: "₹1,00,000" },
-  { year: "2026", event: "Panel Invite", detail: "TechSparks Conference", amount: null },
-  { year: "2025", event: "Prize Winner", detail: "KBC Young Innovators", amount: "₹40,000" },
-  { year: "2025", event: "Media Feature", detail: "Runtime Magazine", amount: null },
-  { year: "2025", event: "Workshop Host", detail: "Hyderabad Maker Fest", amount: null },
-  { year: "2024", event: "Competition Winner", detail: "National Robotics Challenge", amount: "₹25,000" },
+  { year: "2026", event: "Special Prize", detail: "Vedanta × Param Foundation Makeathon" },
+  { year: "2026", event: "₹1,00,000 Grant", detail: "Malpani Ventures" },
+  { year: "2025", event: "Participant Invite", detail: "Robotics & Hardware Founders Meet" },
+  { year: "2024", event: "Prize Winner", detail: "Hitex Kids Business Carnival" },
 ];
 
-// Momentum Stats
+// Momentum Stats - Exact values as specified
 const stats = [
   { label: "Age", value: "8" },
   { label: "Systems Built", value: "25+" },
@@ -53,14 +68,22 @@ const stats = [
   { label: "Grants Won", value: "₹1.4L+" },
 ];
 
-// Active Build Focus Items
+// Active Build Focus Items - Exact content as specified
 const activeFocus = [
   { title: "Hardvare", description: "Hardware execution platform" },
-  { title: "Motion-Control Gaming Platform", description: "Gesture-based interactive entertainment" },
-  { title: "Autonomous Grant Agent", description: "AI-powered funding discovery system" },
+  { title: "Motion-Control Gaming Platform", description: "" },
+  { title: "Autonomous Grant Agent", description: "" },
 ];
 
-// Collaborate Items
+// Backed By - Exact list as specified
+const backers = [
+  { name: "Malpani Ventures", href: "#" },
+  { name: "Lion Circuits", href: "#" },
+  { name: "Param Foundation", href: "#" },
+  { name: "AI Grants India", href: "#" },
+];
+
+// Collaborate Items - Exact list as specified
 const collaborateItems = [
   "Hardware sponsorship",
   "Cloud infrastructure credits",
@@ -145,7 +168,7 @@ function Index() {
                   {system.description}
                 </p>
                 <a 
-                  href="/systems" 
+                  href={system.href} 
                   className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
                 >
                   View System →
@@ -169,10 +192,14 @@ function Index() {
                 <span className="text-lg font-semibold text-[var(--text-primary)]">
                   {item.title}
                 </span>
-                <span className="text-[var(--text-muted)]">—</span>
-                <span className="text-[var(--text-secondary)]">
-                  {item.description}
-                </span>
+                {item.description && (
+                  <>
+                    <span className="text-[var(--text-muted)]">—</span>
+                    <span className="text-[var(--text-secondary)]">
+                      {item.description}
+                    </span>
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -183,18 +210,18 @@ function Index() {
           <h2 className="text-2xl md:text-3xl font-semibold mb-10">
             Backed By
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {backers.map((backer) => (
               <a
-                key={i}
-                href="#"
+                key={backer.name}
+                href={backer.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group aspect-[3/2] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-200"
-                aria-label={`Backer logo ${i}`}
+                className="group aspect-[3/2] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center p-4 opacity-60 hover:opacity-100 transition-opacity duration-200"
+                aria-label={backer.name}
               >
-                <span className="text-xs text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors duration-200">
-                  Logo ↗
+                <span className="text-sm text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors duration-200 text-center">
+                  {backer.name} ↗
                 </span>
               </a>
             ))}
@@ -216,12 +243,11 @@ function Index() {
                 <span className="font-mono text-sm text-[var(--text-muted)] sm:w-20 shrink-0">
                   {entry.year}
                 </span>
-                <span className="text-[var(--text-secondary)] sm:mx-4">—</span>
+                <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
                 <span className="font-mono text-sm text-[var(--text-secondary)] sm:flex-1">
-                  {entry.amount && <span className="text-[var(--text-primary)]">{entry.amount} </span>}
                   {entry.event}
                 </span>
-                <span className="text-[var(--text-secondary)] sm:mx-4">—</span>
+                <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
                 <span className="font-mono text-sm text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors duration-150">
                   {entry.detail}
                 </span>
@@ -244,7 +270,7 @@ function Index() {
           <ul className="space-y-3 mb-10">
             {collaborateItems.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <span className="text-[var(--text-muted)] select-none">-</span>
+                <span className="text-[var(--text-muted)] select-none">•</span>
                 <span className="text-[var(--text-secondary)]">{item}</span>
               </li>
             ))}
