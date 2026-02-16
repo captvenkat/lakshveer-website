@@ -1,72 +1,110 @@
-// TODO(agent): This is a temporary "under construction" page.
-// Replace the entire contents of this file with the actual index page implementation
-// as instructed by the user. Delete this comment and the placeholder UI below.
+interface LinkProps {
+  href: string;
+  children: React.ReactNode;
+  external?: boolean;
+}
 
-import { useState, useEffect } from "react";
+const InternalLink = ({ href, children }: LinkProps) => (
+  <a href={href} className="link-internal">
+    {children}
+  </a>
+);
 
-const AGENT_THOUGHTS = [
-	"Crafting the perfect landing page",
-	"Fine-tuning the color palette",
-	"Making buttons actually clickable",
-	"Ensuring it works on your phone too",
-	"Adding just the right amount of whitespace",
-	"Teaching forms to be polite",
-	"Making the logo pixel-perfect",
-	"Optimizing for speed (patience, ironic)",
-	"Writing code that future-me won't hate",
-	"Building something worth the wait",
-];
+const ExternalLink = ({ href, children }: LinkProps) => (
+  <a href={href} target="_blank" rel="noopener noreferrer" className="link-external">
+    {children}
+  </a>
+);
 
 function Index() {
-	const [thoughtIndex, setThoughtIndex] = useState(0);
+  return (
+    <div className="min-h-screen">
+      {/* Main container with max-width 1100px */}
+      <main className="container-main py-24 md:py-32">
+        {/* Hero Section */}
+        <header className="mb-20">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6">
+            Personal Site
+          </h1>
+          <p className="text-xl md:text-2xl text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+            Designer, developer, and maker of things. Building tools and writing about technology, design, and the craft of creation.
+          </p>
+        </header>
 
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setThoughtIndex((prev) => (prev + 1) % AGENT_THOUGHTS.length);
-		}, 3000);
-		return () => clearInterval(interval);
-	}, []);
+        {/* Recent Work / Ledger Section */}
+        <section className="mb-20">
+          <h2 className="text-xl font-semibold mb-8 text-[var(--text-primary)]">
+            Recent
+          </h2>
+          
+          <div className="space-y-6">
+            <article className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
+              <time className="ledger-date shrink-0">2024.12</time>
+              <div>
+                <InternalLink href="/writing/design-systems">
+                  Building a design system from scratch
+                </InternalLink>
+              </div>
+            </article>
+            
+            <article className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
+              <time className="ledger-date shrink-0">2024.11</time>
+              <div>
+                <ExternalLink href="https://github.com">
+                  Open source contributions
+                </ExternalLink>
+              </div>
+            </article>
+            
+            <article className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
+              <time className="ledger-date shrink-0">2024.10</time>
+              <div>
+                <InternalLink href="/projects/toolkit">
+                  Developer toolkit release
+                </InternalLink>
+              </div>
+            </article>
+          </div>
+        </section>
 
-	return (
-		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center p-8">
+        {/* About Section */}
+        <section className="mb-20">
+          <h2 className="text-xl font-semibold mb-8 text-[var(--text-primary)]">
+            About
+          </h2>
+          <div className="space-y-4 text-[var(--text-secondary)] max-w-2xl">
+            <p>
+              I build products and write code. Currently focused on developer tools and design systems that make building software more enjoyable.
+            </p>
+            <p>
+              Previously worked on projects spanning fintech, creative tools, and infrastructure. Always interested in the intersection of design and engineering.
+            </p>
+          </div>
+        </section>
 
-			<h1 className="text-[clamp(2.5rem,10vw,6rem)] font-black tracking-[-0.03em] text-black leading-none mb-10 text-center">
-				Under
-				<br />
-				Construction
-			</h1>
+        {/* Connect Section */}
+        <section>
+          <h2 className="text-xl font-semibold mb-8 text-[var(--text-primary)]">
+            Connect
+          </h2>
+          <div className="flex flex-wrap gap-6">
+            <ExternalLink href="https://twitter.com">Twitter</ExternalLink>
+            <ExternalLink href="https://github.com">GitHub</ExternalLink>
+            <ExternalLink href="mailto:hello@example.com">Email</ExternalLink>
+          </div>
+        </section>
+      </main>
 
-			{/* Agent thought with shimmer */}
-			<div className="h-8 flex items-center justify-center">
-				<p className="text-base md:text-lg shimmer-text italic">
-					"{AGENT_THOUGHTS[thoughtIndex]}"
-				</p>
-			</div>
-
-			<style>{`
-				.shimmer-text {
-					background: linear-gradient(
-						90deg,
-						#737373 0%,
-						#737373 40%,
-						#d4d4d4 50%,
-						#737373 60%,
-						#737373 100%
-					);
-					background-size: 200% 100%;
-					-webkit-background-clip: text;
-					background-clip: text;
-					-webkit-text-fill-color: transparent;
-					animation: shimmer 2s ease-in-out infinite;
-				}
-
-				@keyframes shimmer {
-					0% { background-position: 100% 0; }
-					100% { background-position: -100% 0; }
-				}
-			`}</style>
-		</div>
-	);
+      {/* Footer */}
+      <footer className="container-main pb-12">
+        <div className="border-t border-[var(--border-subtle)] pt-8">
+          <p className="text-sm text-[var(--text-muted)]">
+            <span className="font-mono">2024</span>
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
 }
 
 export default Index;
