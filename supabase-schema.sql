@@ -5,9 +5,12 @@
 create table systems (
   id uuid primary key default gen_random_uuid(),
   title text not null,
+  slug text unique,
   description text,
-  category text not null check (category in ('Flagship Platforms', 'Robotics', 'Vision & Edge AI', 'Experimental Devices')),
+  category text,
   link text,
+  github_url text,
+  demo_url text,
   is_featured boolean default false,
   created_at timestamp with time zone default now()
 );
@@ -16,10 +19,12 @@ create table systems (
 create table impact (
   id uuid primary key default gen_random_uuid(),
   title text not null,
+  year text,
   type text not null check (type in ('Grant', 'Award', 'Panel', 'Workshop', 'Product', 'Media')),
   organisation text,
   description text,
   link text,
+  link_label text,
   is_featured boolean default false,
   created_at timestamp with time zone default now()
 );
@@ -71,112 +76,87 @@ create policy "Public can submit collaboration inquiries"
   with check (true);
 
 -- Admin Full Access Policies (requires authenticated user)
--- Note: In production, add additional role checks
-
 create policy "Authenticated users can read all systems"
-  on systems for select
-  to authenticated
-  using (true);
+  on systems for select to authenticated using (true);
 
 create policy "Authenticated users can insert systems"
-  on systems for insert
-  to authenticated
-  with check (true);
+  on systems for insert to authenticated with check (true);
 
 create policy "Authenticated users can update systems"
-  on systems for update
-  to authenticated
-  using (true);
+  on systems for update to authenticated using (true);
 
 create policy "Authenticated users can delete systems"
-  on systems for delete
-  to authenticated
-  using (true);
+  on systems for delete to authenticated using (true);
 
 create policy "Authenticated users can read all impact"
-  on impact for select
-  to authenticated
-  using (true);
+  on impact for select to authenticated using (true);
 
 create policy "Authenticated users can insert impact"
-  on impact for insert
-  to authenticated
-  with check (true);
+  on impact for insert to authenticated with check (true);
 
 create policy "Authenticated users can update impact"
-  on impact for update
-  to authenticated
-  using (true);
+  on impact for update to authenticated using (true);
 
 create policy "Authenticated users can delete impact"
-  on impact for delete
-  to authenticated
-  using (true);
+  on impact for delete to authenticated using (true);
 
 create policy "Authenticated users can read all supporters"
-  on supporters for select
-  to authenticated
-  using (true);
+  on supporters for select to authenticated using (true);
 
 create policy "Authenticated users can insert supporters"
-  on supporters for insert
-  to authenticated
-  with check (true);
+  on supporters for insert to authenticated with check (true);
 
 create policy "Authenticated users can update supporters"
-  on supporters for update
-  to authenticated
-  using (true);
+  on supporters for update to authenticated using (true);
 
 create policy "Authenticated users can delete supporters"
-  on supporters for delete
-  to authenticated
-  using (true);
+  on supporters for delete to authenticated using (true);
 
 create policy "Authenticated users can read all inquiries"
-  on collaboration_inquiries for select
-  to authenticated
-  using (true);
+  on collaboration_inquiries for select to authenticated using (true);
 
 create policy "Authenticated users can update inquiries"
-  on collaboration_inquiries for update
-  to authenticated
-  using (true);
+  on collaboration_inquiries for update to authenticated using (true);
 
 create policy "Authenticated users can delete inquiries"
-  on collaboration_inquiries for delete
-  to authenticated
-  using (true);
+  on collaboration_inquiries for delete to authenticated using (true);
 
 -- Indexes for performance
 create index idx_systems_featured on systems(is_featured) where is_featured = true;
-create index idx_systems_category on systems(category);
+create index idx_systems_slug on systems(slug);
 create index idx_impact_featured on impact(is_featured) where is_featured = true;
 create index idx_impact_type on impact(type);
+create index idx_impact_year on impact(year);
 create index idx_supporters_featured on supporters(is_featured) where is_featured = true;
 create index idx_inquiries_handled on collaboration_inquiries(is_handled);
 create index idx_inquiries_created on collaboration_inquiries(created_at desc);
 
--- Sample Data (Optional - uncomment to seed)
-/*
-insert into systems (title, description, category, link, is_featured) values
-  ('Hardvare', 'Hardware execution platform for deployable systems', 'Flagship Platforms', 'https://github.com/projectsbylaksh/hardvare', true),
-  ('GrantBot', 'Autonomous grant discovery and application agent', 'Flagship Platforms', 'https://github.com/projectsbylaksh/grantbot', true),
-  ('Motion-Control Gaming', 'Gesture-based gaming interface', 'Flagship Platforms', 'https://github.com/projectsbylaksh/motion-gaming', true),
-  ('LineBot v3', 'Advanced line-following robot with PID control', 'Robotics', 'https://github.com/projectsbylaksh/linebot', true),
-  ('FaceDetect Edge', 'Real-time face detection on Raspberry Pi', 'Vision & Edge AI', 'https://github.com/projectsbylaksh/facedetect', true),
-  ('SensorHub', 'Multi-sensor data aggregation platform', 'Experimental Devices', 'https://github.com/projectsbylaksh/sensorhub', true);
+-- Seed Data for Systems
+insert into systems (title, slug, description, github_url, demo_url, is_featured) values
+  ('Hardvare', 'hardvare', 'Hardware execution platform preventing unsafe wiring and invalid logic states.', '#', '#', true),
+  ('CircuitHeroes', 'circuitheroes', 'Circuit-building trading card game. 300+ decks shipped.', null, '#', true),
+  ('Autonomous Grant Agent', 'grant-agent', 'AI agent sourcing and filing global grants autonomously.', null, '#', true),
+  ('Motion-Control Gaming Platform', 'motion', 'Full-body measurable gaming system driven by real movement.', null, '#', true),
+  ('Vision-Based Robotics', 'vision', 'OpenCV and TensorFlow Lite deployments on edge devices.', '#', null, true),
+  ('Autonomous Navigation Systems', 'navigation', 'GPS-guided and gesture-controlled robotic vehicles.', null, '#', true);
 
-insert into impact (title, type, organisation, description, link, is_featured) values
-  ('₹1,00,000 Grant', 'Grant', 'Malpani Ventures', 'Selected for hardware innovation track', 'https://example.com/announcement', true),
-  ('First Place', 'Award', 'KBC Young Innovators', 'National robotics competition winner', 'https://example.com/results', true),
-  ('Panel Speaker', 'Panel', 'EdTech Summit', 'Youth in hardware innovation panel', 'https://example.com/event', true),
-  ('Cover Feature', 'Media', 'Runtime Magazine', 'Profile on youngest hardware builder', 'https://example.com/article', true),
-  ('Robotics Workshop', 'Workshop', 'Delhi Public School', '50+ students, full-day hands-on session', null, true),
-  ('LineBot Kit', 'Product', 'Direct Sales', '15 units sold to schools and hobbyists', null, true);
+-- Seed Data for Impact
+insert into impact (title, year, type, organisation, link, link_label, is_featured) values
+  ('₹1,00,000 Grant', '2026', 'Grant', 'Malpani Ventures', '#', 'Official Announcement', true),
+  ('AI Credits', '2026', 'Grant', 'AI Grants India', '#', 'Grant Page', true),
+  ('Special Prize', '2026', 'Award', 'Vedanta × Param Foundation Makeathon', '#', 'Event Page', true),
+  ('Prize Winner', '2024', 'Award', 'Hitex Kids Business Carnival', '#', 'Event Coverage', true),
+  ('Participant Invite', '2025', 'Panel', 'Robotics & Hardware Founders Meet', '#', 'Event Page', true),
+  ('Robotics Workshop', '2025', 'Workshop', 'Corporate Session', '#', 'Session Photos', false),
+  ('AI Systems Workshop', '2025', 'Workshop', 'School Program', '#', 'Session Overview', false),
+  ('CircuitHeroes', null, 'Product', '300+ Decks Shipped', '#', 'Website', false),
+  ('Ebook', null, 'Product', 'Copies Sold', '#', 'Download Page', false),
+  ('Runtime Magazine', null, 'Media', 'Feature', '#', 'Article', false),
+  ('YouTube', null, 'Media', 'Hackathon Demo', '#', 'Watch', false);
 
+-- Seed Data for Supporters
 insert into supporters (name, logo_url, link, is_featured) values
   ('Malpani Ventures', '/logos/malpani.png', 'https://malpaniventures.com', true),
-  ('Maker Movement India', '/logos/maker-movement.png', 'https://makermovement.in', true),
-  ('Tech Foundation', '/logos/tech-foundation.png', 'https://techfoundation.org', true);
-*/
+  ('Lion Circuits', '/logos/lion-circuits.png', 'https://lioncircuits.com', true),
+  ('Param Foundation', '/logos/param.png', 'https://paramfoundation.org', true),
+  ('AI Grants India', '/logos/ai-grants.png', 'https://aigrants.in', true);

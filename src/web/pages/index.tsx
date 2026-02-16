@@ -17,38 +17,40 @@ const ExternalLink = ({ href, children }: LinkProps) => (
   </a>
 );
 
-// Selected Systems Data - Exact content as specified
-const selectedSystems = [
+// Selected Platforms Data - Exactly 4 entries as specified
+const selectedPlatforms = [
   { 
     title: "Hardvare", 
-    description: "Hardware execution platform preventing unsafe wiring and invalid logic states.",
-    href: "/systems#hardvare"
+    description: "Hardware execution platform enforcing safe electrical and logical states.",
+    href: "/systems#hardvare",
+    isInternal: true
   },
   { 
-    title: "CircuitHeroes", 
-    description: "Circuit-building trading card game. 300+ decks shipped.",
-    href: "/systems#circuitheroes"
+    title: "CircuitHeroes.com", 
+    description: "Circuit-building trading card game. 300+ decks sold.",
+    href: "https://circuitheroes.com",
+    isInternal: false
   },
   { 
-    title: "Autonomous Grant Agent", 
-    description: "AI agent sourcing, evaluating, and filing global grants.",
-    href: "/systems#grant-agent"
+    title: "ChhotaCreator.com", 
+    description: "Peer-learning platform for hands-on learning.",
+    href: "https://chhotacreator.com",
+    isInternal: false
   },
   { 
-    title: "Motion-Control Gaming Platform", 
-    description: "Full-body measurable gaming system driven by physical movement.",
-    href: "/systems#motion"
+    title: "IdeasByKids / FirstClue", 
+    description: "AI system decoding children's ideas into structured development insights.",
+    href: "/systems#firstclue",
+    isInternal: true
   },
-  { 
-    title: "Vision-Based Robotics", 
-    description: "OpenCV and edge AI deployments on ESP32 and Raspberry Pi.",
-    href: "/systems#vision"
-  },
-  { 
-    title: "Autonomous Navigation Systems", 
-    description: "GPS-guided and gesture-controlled robotic vehicles.",
-    href: "/systems#navigation"
-  },
+];
+
+// Autonomous Systems Data
+const autonomousSystems = [
+  "Autonomous obstacle-avoiding vehicles",
+  "Gesture-controlled & GPS-guided robotic cars",
+  "Vision systems using OpenCV, MediaPipe, TensorFlow Lite",
+  "AI-powered monitoring & assistance bots",
 ];
 
 // Impact Data - Exact content as specified
@@ -59,20 +61,13 @@ const impactEntries = [
   { year: "2024", event: "Prize Winner", detail: "Hitex Kids Business Carnival" },
 ];
 
-// Momentum Stats - Exact values as specified
+// Momentum Stats - Updated as specified
 const stats = [
   { label: "Age", value: "8" },
   { label: "Systems Built", value: "25+" },
   { label: "Products Shipped", value: "3" },
   { label: "Workshops Delivered", value: "12+" },
-  { label: "Grants Won", value: "₹1.4L+" },
-];
-
-// Active Build Focus Items - Exact content as specified
-const activeFocus = [
-  { title: "Hardvare", description: "Hardware execution platform" },
-  { title: "Motion-Control Gaming Platform", description: "" },
-  { title: "Autonomous Grant Agent", description: "" },
+  { label: "Grants & Scholarships", value: "₹1.4L+" },
 ];
 
 // Backed By - Exact list as specified
@@ -107,17 +102,21 @@ function Index() {
                 Lakshveer Rao <span className="text-[var(--text-secondary)] font-normal">(Age 8)</span>
               </h1>
               <p className="text-xl md:text-2xl text-[var(--text-secondary)] mb-2">
-                Hardware + AI Systems Builder
+                Co-Founder | Builder | Hardware + AI Systems Engineer | Game Designer
               </p>
               <p className="text-lg text-[var(--text-muted)] mb-6">
-                Co-Founder — Projects by Laksh
+                Co-Founder & Partner — Projects by Laksh
               </p>
-              <p className="text-lg text-[var(--text-secondary)] mb-10 leading-relaxed max-w-xl">
-                Building deployable autonomous hardware and AI systems from India.
+              <p className="text-lg text-[var(--text-secondary)] mb-4 leading-relaxed max-w-xl">
+                Lakshveer Rao builds end-to-end deployable systems across electronics, robotics, autonomous machines, computer vision, AI-driven devices, and motion-controlled games.
+              </p>
+              <p className="text-base text-[var(--text-muted)] mb-10">
+                Operating Principle: build → fail → debug → ship.
               </p>
               <nav className="flex flex-wrap gap-6 md:gap-8">
                 <InternalLink href="/systems">Systems</InternalLink>
                 <InternalLink href="/impact">Impact</InternalLink>
+                <InternalLink href="/venture">Venture</InternalLink>
                 <InternalLink href="/collaborate">Collaborate</InternalLink>
               </nav>
             </div>
@@ -150,59 +149,59 @@ function Index() {
           </div>
         </section>
 
-        {/* ========== SELECTED SYSTEMS ========== */}
+        {/* ========== SELECTED PLATFORMS ========== */}
         <section className="mb-24 md:mb-32">
           <h2 className="text-2xl md:text-3xl font-semibold mb-10">
-            Selected Systems
+            Selected Platforms
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {selectedSystems.map((system) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {selectedPlatforms.map((platform) => (
               <article 
-                key={system.title}
+                key={platform.title}
                 className="group p-6 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--text-muted)] transition-[border-color] duration-200"
               >
                 <h3 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">
-                  {system.title}
+                  {platform.title}
                 </h3>
                 <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">
-                  {system.description}
+                  {platform.description}
                 </p>
-                <a 
-                  href={system.href} 
-                  className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-                >
-                  View System →
-                </a>
+                {platform.isInternal ? (
+                  <a 
+                    href={platform.href} 
+                    className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+                  >
+                    View System →
+                  </a>
+                ) : (
+                  <a 
+                    href={platform.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+                  >
+                    Website ↗
+                  </a>
+                )}
               </article>
             ))}
           </div>
         </section>
 
-        {/* ========== ACTIVE BUILD FOCUS ========== */}
+        {/* ========== AUTONOMOUS SYSTEMS SUMMARY ========== */}
         <section className="mb-24 md:mb-32">
           <h2 className="text-2xl md:text-3xl font-semibold mb-10">
-            Active Build Focus
+            Autonomous Systems
           </h2>
-          <div className="space-y-4">
-            {activeFocus.map((item) => (
-              <div 
-                key={item.title}
-                className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 py-3 border-b border-[var(--border-subtle)]"
-              >
-                <span className="text-lg font-semibold text-[var(--text-primary)]">
-                  {item.title}
-                </span>
-                {item.description && (
-                  <>
-                    <span className="text-[var(--text-muted)]">—</span>
-                    <span className="text-[var(--text-secondary)]">
-                      {item.description}
-                    </span>
-                  </>
-                )}
-              </div>
+          <ul className="space-y-3 mb-10">
+            {autonomousSystems.map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <span className="text-[var(--text-muted)] select-none">•</span>
+                <span className="text-[var(--text-secondary)]">{item}</span>
+              </li>
             ))}
-          </div>
+          </ul>
+          <InternalLink href="/systems">View All Systems</InternalLink>
         </section>
 
         {/* ========== BACKED BY ========== */}
