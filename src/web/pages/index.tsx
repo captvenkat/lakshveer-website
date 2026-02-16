@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SEO, PAGE_TITLES } from "@/components/seo";
 
 interface LinkProps {
@@ -104,6 +105,105 @@ const founderLinks = [
   { label: "LinkedIn", href: "https://www.linkedin.com/in/captvenkat/" },
   { label: "X", href: "https://x.com/CaptVenk" },
 ];
+
+// Featured Endorsements for Ecosystem Recognition section
+interface FeaturedEndorsement {
+  slug: string;
+  quote: string;
+  name: string;
+  role: string;
+  organisation: string;
+}
+
+const featuredEndorsements: FeaturedEndorsement[] = [
+  {
+    slug: "lion-circuits-2026",
+    quote: "Lakshveer demonstrates exceptional understanding of hardware systems for his age. His work on circuit design shows real engineering thinking.",
+    name: "Arun Kumar",
+    role: "Technical Director",
+    organisation: "Lion Circuits",
+  },
+  {
+    slug: "malpani-ventures-2026",
+    quote: "One of the most impressive young builders we have funded. Clear vision, disciplined execution.",
+    name: "Priya Malpani",
+    role: "Partner",
+    organisation: "Malpani Ventures",
+  },
+  {
+    slug: "param-foundation-2026",
+    quote: "Lakshveer brings a rare combination of creativity and technical rigor. His makeathon project stood out among participants twice his age.",
+    name: "Rajesh Sharma",
+    role: "Program Director",
+    organisation: "Param Foundation",
+  },
+];
+
+// ShareButton component for endorsements
+interface ShareButtonProps {
+  slug: string;
+}
+
+const ShareButton = ({ slug }: ShareButtonProps) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/recognition/${slug}`;
+    
+    // Check if Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Ecosystem Recognition - Lakshveer Rao",
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled or share failed, fallback to copy
+        await copyToClipboard(shareUrl);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="relative inline-flex items-center">
+      <button
+        onClick={handleShare}
+        className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+      >
+        Share ↗
+      </button>
+      {copied && (
+        <span 
+          className="absolute left-full ml-3 text-xs text-[var(--text-muted)] whitespace-nowrap"
+          style={{ animation: "fadeOut 2s forwards" }}
+        >
+          Link copied
+        </span>
+      )}
+    </div>
+  );
+};
 
 function Index() {
   return (
@@ -276,6 +376,42 @@ function Index() {
           </div>
           <div className="mt-8">
             <InternalLink href="/impact">View Full Impact</InternalLink>
+          </div>
+        </section>
+
+        {/* ========== ECOSYSTEM RECOGNITION ========== */}
+        <section className="mb-24 md:mb-32">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-10">
+            Ecosystem Recognition
+          </h2>
+          <div className="space-y-0">
+            {featuredEndorsements.map((endorsement) => (
+              <article 
+                key={endorsement.slug}
+                className="py-8 border-b border-[var(--border-subtle)] last:border-b-0"
+              >
+                {/* Quote - displayed as paragraph, no quotation marks */}
+                <p className="text-lg text-[var(--text-primary)] leading-relaxed mb-6">
+                  {endorsement.quote}
+                </p>
+                
+                {/* Attribution */}
+                <div className="space-y-1 mb-4">
+                  <p className="text-[var(--text-primary)] font-semibold">
+                    — {endorsement.name}
+                  </p>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    {endorsement.role}, {endorsement.organisation}
+                  </p>
+                </div>
+                
+                {/* Share button */}
+                <ShareButton slug={endorsement.slug} />
+              </article>
+            ))}
+          </div>
+          <div className="mt-8">
+            <InternalLink href="/recognition">View All Recognition</InternalLink>
           </div>
         </section>
 
