@@ -2,15 +2,10 @@ import { Link } from "wouter";
 import { SEO, PAGE_TITLES } from "@/components/seo";
 
 interface SystemEntry {
+  id: string;
   title: string;
   description: string;
-  github?: string;
-  demo?: string;
-}
-
-interface SystemCategory {
-  name: string;
-  systems: SystemEntry[];
+  links: { label: string; href: string }[];
 }
 
 const ExternalLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -24,110 +19,56 @@ const ExternalLink = ({ href, children }: { href: string; children: React.ReactN
   </a>
 );
 
-// Systems Data organized by category
-const systemCategories: SystemCategory[] = [
+// Systems Data - flat list
+const systems: SystemEntry[] = [
   {
-    name: "Flagship Platforms",
-    systems: [
-      {
-        title: "Hardvare",
-        description: "Hardware execution platform for deployable systems",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "GrantBot",
-        description: "Autonomous grant discovery and application agent",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "Motion-Control Gaming",
-        description: "Gesture-based gaming interface",
-        github: "#",
-        demo: "#",
-      },
+    id: "hardvare",
+    title: "Hardvare",
+    description: "Hardware execution platform preventing unsafe wiring and invalid logic states.",
+    links: [
+      { label: "GitHub", href: "#" },
+      { label: "Demo", href: "#" },
     ],
   },
   {
-    name: "Robotics",
-    systems: [
-      {
-        title: "LineBot v3",
-        description: "Advanced line-following robot with PID control",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "ObstacleBot Pro",
-        description: "Multi-sensor obstacle avoidance system",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "ArmBot Mini",
-        description: "3-DOF robotic arm with precision control",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "SwarmBot Alpha",
-        description: "Coordinated multi-robot swarm prototype",
-        github: "#",
-        demo: "#",
-      },
+    id: "circuitheroes",
+    title: "CircuitHeroes",
+    description: "Circuit-building trading card game. 300+ decks shipped.",
+    links: [
+      { label: "Website", href: "#" },
+      { label: "Gameplay Demo", href: "#" },
     ],
   },
   {
-    name: "Vision & Edge AI",
-    systems: [
-      {
-        title: "FaceDetect Edge",
-        description: "Real-time face detection on Raspberry Pi",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "ObjectTracker v2",
-        description: "Computer vision object tracking system",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "GestureAI",
-        description: "Hand gesture recognition for HCI",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "EdgeClassifier",
-        description: "On-device image classification",
-        github: "#",
-        demo: "#",
-      },
+    id: "grant-agent",
+    title: "Autonomous Grant Agent",
+    description: "AI agent sourcing and filing global grants autonomously.",
+    links: [
+      { label: "Architecture Overview", href: "#" },
     ],
   },
   {
-    name: "Experimental Devices",
-    systems: [
-      {
-        title: "SensorHub",
-        description: "Multi-sensor data aggregation platform",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "IoT Gateway",
-        description: "Edge computing gateway for sensor networks",
-        github: "#",
-        demo: "#",
-      },
-      {
-        title: "PowerMonitor",
-        description: "Real-time power consumption tracker",
-        github: "#",
-        demo: "#",
-      },
+    id: "motion",
+    title: "Motion-Control Gaming Platform",
+    description: "Full-body measurable gaming system driven by real movement.",
+    links: [
+      { label: "Demo", href: "#" },
+    ],
+  },
+  {
+    id: "vision",
+    title: "Vision-Based Robotics",
+    description: "OpenCV and TensorFlow Lite deployments on edge devices.",
+    links: [
+      { label: "GitHub", href: "#" },
+    ],
+  },
+  {
+    id: "navigation",
+    title: "Autonomous Navigation Systems",
+    description: "GPS-guided and gesture-controlled robotic vehicles.",
+    links: [
+      { label: "Demo", href: "#" },
     ],
   },
 ];
@@ -150,44 +91,35 @@ function Systems() {
           </p>
         </header>
 
-        {/* Systems Categories */}
-        <div className="space-y-16 md:space-y-20">
-          {systemCategories.map((category) => (
-            <section key={category.name}>
-              <h2 className="text-xl md:text-2xl font-semibold mb-8 text-[var(--text-primary)] pb-3 border-b border-[var(--border-subtle)]">
-                {category.name}
-              </h2>
-              <div className="space-y-0">
-                {category.systems.map((system) => (
-                  <article 
-                    key={system.title}
-                    className="py-5 border-b border-[var(--border-subtle)] group"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-3 md:gap-8">
-                      {/* Title and description */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-                          {system.title}
-                        </h3>
-                        <p className="text-[var(--text-secondary)] text-sm md:text-base">
-                          {system.description}
-                        </p>
-                      </div>
-                      
-                      {/* Links */}
-                      <div className="flex items-center gap-6 shrink-0">
-                        {system.github && (
-                          <ExternalLink href={system.github}>GitHub</ExternalLink>
-                        )}
-                        {system.demo && (
-                          <ExternalLink href={system.demo}>Demo</ExternalLink>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                ))}
+        {/* Systems List - Flat, no categories */}
+        <div className="space-y-0">
+          {systems.map((system) => (
+            <article 
+              key={system.id}
+              id={system.id}
+              className="py-6 border-b border-[var(--border-subtle)] group scroll-mt-24"
+            >
+              <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-3 md:gap-8">
+                {/* Title and description */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
+                    {system.title}
+                  </h2>
+                  <p className="text-[var(--text-secondary)] text-sm md:text-base">
+                    {system.description}
+                  </p>
+                </div>
+                
+                {/* Links */}
+                <div className="flex items-center gap-6 shrink-0">
+                  {system.links.map((link) => (
+                    <ExternalLink key={link.label} href={link.href}>
+                      {link.label}
+                    </ExternalLink>
+                  ))}
+                </div>
               </div>
-            </section>
+            </article>
           ))}
         </div>
       </main>
