@@ -5,6 +5,7 @@ import Impact from "./pages/impact";
 import Venture from "./pages/venture";
 import Collaborate from "./pages/collaborate";
 import Admin from "./pages/admin";
+import Recognition from "./pages/recognition";
 import { Provider } from "./components/provider";
 
 function App() {
@@ -17,6 +18,8 @@ function App() {
                                 <Route path="/venture" component={Venture} />
                                 <Route path="/collaborate" component={Collaborate} />
                                 <Route path="/admin" component={Admin} />
+                                <Route path="/recognition" component={Recognition} />
+                                <Route path="/recognition/:slug" component={Recognition} />
                         </Switch>
                 </Provider>
         );

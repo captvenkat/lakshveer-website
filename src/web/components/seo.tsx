@@ -71,4 +71,5 @@ export const PAGE_TITLES = {
   venture: "Projects by Laksh | Venture",
   collaborate: "Collaborate | Lakshveer Rao",
   admin: "Admin | Projects by Laksh",
+  recognition: "Recognition | Lakshveer Rao",
 } as const;
