@@ -2,6 +2,7 @@ import { Route, Switch } from "wouter";
 import Index from "./pages/index";
 import Systems from "./pages/systems";
 import Impact from "./pages/impact";
+import Venture from "./pages/venture";
 import { Provider } from "./components/provider";
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
                                 <Route path="/" component={Index} />
                                 <Route path="/systems" component={Systems} />
                                 <Route path="/impact" component={Impact} />
+                                <Route path="/venture" component={Venture} />
                         </Switch>
                 </Provider>
         );
