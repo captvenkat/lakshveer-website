@@ -71,6 +71,14 @@ const systems: SystemEntry[] = [
       { label: "Demo", href: "#" },
     ],
   },
+  {
+    id: "firstclue",
+    title: "IdeasByKids / FirstClue",
+    description: "AI system decoding children's ideas into structured development insights.",
+    links: [
+      { label: "Architecture Overview", href: "#" },
+    ],
+  },
 ];
 
 function Systems() {
