@@ -53,12 +53,13 @@ const autonomousSystems = [
   "AI-powered monitoring & assistance bots",
 ];
 
-// Impact Data - Exact content as specified
+// Impact Data - Updated per Task 15
 const impactEntries = [
-  { year: "2026", event: "Special Prize", detail: "Vedanta × Param Foundation Makeathon" },
+  { year: "2026", event: "Special Mention Winner", detail: "Vedanta × Param Foundation Makeathon" },
   { year: "2026", event: "₹1,00,000 Grant", detail: "Malpani Ventures" },
-  { year: "2025", event: "Participant Invite", detail: "Robotics & Hardware Founders Meet" },
-  { year: "2024", event: "Prize Winner", detail: "Hitex Kids Business Carnival" },
+  { year: "2026", event: "Special Invite", detail: "Robotics & Hardware Founders Meet" },
+  { year: "", event: "Top-5 Finalist", detail: "Hardware Hackathon 2.0" },
+  { year: "", event: "Youngest Finalist", detail: "VibeHack by Emergent" },
 ];
 
 // Momentum Stats - Updated as specified
@@ -70,22 +71,38 @@ const stats = [
   { label: "Grants & Scholarships", value: "₹1.4L+" },
 ];
 
-// Backed By - Exact list as specified
+// Backed By - Updated with exact URLs per Task 15
 const backers = [
-  { name: "Malpani Ventures", href: "#" },
-  { name: "Lion Circuits", href: "#" },
-  { name: "Param Foundation", href: "#" },
-  { name: "AI Grants India", href: "#" },
+  { name: "Malpani Ventures", href: "https://malpaniventures.com" },
+  { name: "Lion Circuits", href: "https://lioncircuits.com" },
+  { name: "Param Foundation", href: "https://paramfoundation.org" },
+  { name: "AI Grants India", href: "https://aigrantsindia.com" },
 ];
 
-// Collaborate Items - Exact list as specified
+// Collaborate Items - Updated per Task 15
 const collaborateItems = [
   "Hardware sponsorship",
-  "Cloud infrastructure credits",
-  "Manufacturing access",
-  "Research collaboration",
+  "Manufacturing collaboration",
+  "Research partnerships",
   "Institutional grants",
+  "Cloud credits",
   "Media features",
+];
+
+// Laksh Social Links
+const lakshSocialLinks = [
+  { label: "Website", href: "https://www.lakshveer.com" },
+  { label: "GitHub", href: "https://github.com/lakshveerrao" },
+  { label: "X", href: "https://x.com/LakshveerRao" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/lakshveerrao/" },
+  { label: "YouTube", href: "https://www.youtube.com/@ProjectsByLaksh" },
+  { label: "Runable Hackathon Build", href: "https://motionx.runable.site/" },
+];
+
+// Founder / Ops Links
+const founderLinks = [
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/captvenkat/" },
+  { label: "X", href: "https://x.com/CaptVenk" },
 ];
 
 function Index() {
@@ -239,11 +256,15 @@ function Index() {
                 href="/impact"
                 className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-0 py-4 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors duration-150 group"
               >
-                <span className="font-mono text-sm text-[var(--text-muted)] sm:w-20 shrink-0">
-                  {entry.year}
-                </span>
-                <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
-                <span className="font-mono text-sm text-[var(--text-secondary)] sm:flex-1">
+                {entry.year && (
+                  <>
+                    <span className="font-mono text-sm text-[var(--text-muted)] sm:w-20 shrink-0">
+                      {entry.year}
+                    </span>
+                    <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
+                  </>
+                )}
+                <span className={`font-mono text-sm text-[var(--text-secondary)] ${entry.year ? 'sm:flex-1' : 'flex-1'}`}>
                   {entry.event}
                 </span>
                 <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
@@ -281,28 +302,49 @@ function Index() {
       {/* ========== FOOTER ========== */}
       <footer className="container-main pb-16">
         <div className="border-t border-[var(--border-subtle)] pt-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
             {/* Left column - Lakshveer info */}
             <div>
               <h3 className="text-xl font-semibold mb-2">Lakshveer Rao</h3>
               <p className="text-[var(--text-secondary)] mb-1">Co-Founder — Projects by Laksh</p>
-              <p className="text-[var(--text-muted)] text-sm">Based in Hyderabad, India (UTC+5:30)</p>
+              <p className="text-[var(--text-muted)] text-sm mb-6">Based in Hyderabad, India (UTC+5:30)</p>
+              
+              {/* Laksh Social Links */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {lakshSocialLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+                  >
+                    {link.label} ↗
+                  </a>
+                ))}
+              </div>
             </div>
             
-            {/* Right column - Contact info */}
-            <div className="md:text-right">
+            {/* Right column - Primary Contact info */}
+            <div className="lg:text-right">
               <p className="text-sm text-[var(--text-muted)] mb-4">Primary Contact:</p>
               <h4 className="text-lg font-semibold mb-1">Capt. Venkat</h4>
-              <p className="text-sm text-[var(--text-secondary)] mb-1">First Backer, Investor & Operations Lead</p>
-              <p className="text-sm text-[var(--text-muted)] mb-4">Primary Point of Contact</p>
-              <div className="flex flex-col md:items-end gap-2">
-                <a 
-                  href="mailto:contact@projectsbylaksh.com" 
-                  className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-                >
-                  contact@projectsbylaksh.com
-                </a>
-                <ExternalLink href="https://linkedin.com">LinkedIn</ExternalLink>
+              <p className="text-sm text-[var(--text-secondary)] mb-1">Co-Founder | First Investor | Operations & Systems</p>
+              <p className="text-sm text-[var(--text-muted)] mb-6">Primary Point of Contact</p>
+              
+              {/* Founder / Ops Links */}
+              <div className="flex flex-wrap lg:justify-end gap-x-4 gap-y-2">
+                {founderLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+                  >
+                    {link.label} ↗
+                  </a>
+                ))}
               </div>
             </div>
           </div>
