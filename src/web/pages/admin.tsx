@@ -43,7 +43,19 @@ interface Inquiry {
   handled: boolean;
 }
 
-type TabId = "systems" | "impact" | "supporters" | "inquiries";
+interface Endorsement {
+  id: string;
+  name: string;
+  role: string;
+  organisation: string;
+  content: string;
+  linkedinUrl: string;
+  slug: string;
+  featured: boolean;
+  approved: boolean;
+}
+
+type TabId = "systems" | "impact" | "supporters" | "inquiries" | "endorsements";
 
 // ============================================
 // MOCK DATA (Replace with Supabase queries)
@@ -70,6 +82,13 @@ const initialSupporters: Supporter[] = [
 const initialInquiries: Inquiry[] = [
   { id: "1", name: "Rahul Sharma", email: "rahul@techcorp.com", organisation: "TechCorp", category: "Hardware Sponsorship", message: "We are interested in sponsoring your hardware projects. Our company manufactures IoT components and we'd like to discuss a potential partnership.", date: "2024-01-15", handled: false },
   { id: "2", name: "Priya Patel", email: "priya@makerlabs.in", organisation: "MakerLabs India", category: "Research Collaboration", message: "Would love to collaborate on robotics research. We have a dedicated lab space and could provide testing environments for your prototypes.", date: "2024-01-12", handled: true },
+];
+
+const initialEndorsements: Endorsement[] = [
+  { id: "1", name: "Arun Kumar", role: "Technical Director", organisation: "Lion Circuits", content: "Lakshveer demonstrates exceptional technical understanding for his age. His hardware projects show real engineering thinking.", linkedinUrl: "#", slug: "lion-circuits-2026", featured: true, approved: true },
+  { id: "2", name: "Priya Malpani", role: "Partner", organisation: "Malpani Ventures", content: "We were impressed by the maturity and innovation in Lakshveer's approach to hardware development.", linkedinUrl: "#", slug: "malpani-ventures-2026", featured: true, approved: true },
+  { id: "3", name: "Rajesh Sharma", role: "Program Director", organisation: "Param Foundation", content: "A truly exceptional young builder with a clear vision for creating impactful hardware systems.", linkedinUrl: "#", slug: "param-foundation-2026", featured: true, approved: true },
+  { id: "4", name: "Vikram Rao", role: "Lead Organizer", organisation: "Hardware Hackathon 2.0", content: "Lakshveer's projects at our hackathon stood out for their practical applicability and technical depth.", linkedinUrl: "#", slug: "hardware-hackathon-2026", featured: false, approved: true },
 ];
 
 // ============================================
@@ -108,6 +127,19 @@ const InternalLink = ({ href, children }: LinkProps) => (
 );
 
 // ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+const generateSlug = (organisation: string): string => {
+  return organisation
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim() + "-2026";
+};
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
@@ -129,15 +161,21 @@ function Admin() {
   const [impact, setImpact] = useState<ImpactEntry[]>(initialImpact);
   const [supporters, setSupporters] = useState<Supporter[]>(initialSupporters);
   const [inquiries, setInquiries] = useState<Inquiry[]>(initialInquiries);
+  const [endorsements, setEndorsements] = useState<Endorsement[]>(initialEndorsements);
 
   // Modal/form state
   const [editingSystem, setEditingSystem] = useState<System | null>(null);
   const [editingImpact, setEditingImpact] = useState<ImpactEntry | null>(null);
   const [editingSupporter, setEditingSupporter] = useState<Supporter | null>(null);
+  const [editingEndorsement, setEditingEndorsement] = useState<Endorsement | null>(null);
   const [viewingInquiry, setViewingInquiry] = useState<Inquiry | null>(null);
   const [isAddingSystem, setIsAddingSystem] = useState(false);
   const [isAddingImpact, setIsAddingImpact] = useState(false);
   const [isAddingSupporter, setIsAddingSupporter] = useState(false);
+  const [isAddingEndorsement, setIsAddingEndorsement] = useState(false);
+
+  // Clipboard feedback state
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   // Input base classes
   const inputClasses =
@@ -275,6 +313,52 @@ function Admin() {
   };
 
   // ============================================
+  // ENDORSEMENT CRUD HANDLERS
+  // ============================================
+
+  const handleSaveEndorsement = (endorsement: Endorsement) => {
+    // TODO: Replace with Supabase CRUD
+    // const { error } = await supabase.from('endorsements').upsert(endorsement);
+    
+    if (editingEndorsement) {
+      setEndorsements(prev => prev.map(e => e.id === endorsement.id ? endorsement : e));
+      setEditingEndorsement(null);
+    } else {
+      setEndorsements(prev => [...prev, { ...endorsement, id: Date.now().toString() }]);
+      setIsAddingEndorsement(false);
+    }
+  };
+
+  const handleDeleteEndorsement = (id: string) => {
+    // TODO: Replace with Supabase CRUD
+    // const { error } = await supabase.from('endorsements').delete().eq('id', id);
+    
+    if (confirm("Are you sure you want to delete this endorsement?")) {
+      setEndorsements(prev => prev.filter(e => e.id !== id));
+    }
+  };
+
+  const handleToggleEndorsementApproved = (id: string) => {
+    // TODO: Replace with Supabase CRUD
+    setEndorsements(prev => prev.map(e => e.id === id ? { ...e, approved: !e.approved } : e));
+  };
+
+  const handleToggleEndorsementFeatured = (id: string) => {
+    // TODO: Replace with Supabase CRUD
+    setEndorsements(prev => prev.map(e => e.id === id ? { ...e, featured: !e.featured } : e));
+  };
+
+  const handleCopyShareLink = (slug: string) => {
+    const url = `${window.location.origin}/recognition/${slug}`;
+    navigator.clipboard.writeText(url);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
+  // Count featured and approved endorsements
+  const featuredApprovedCount = endorsements.filter(e => e.featured && e.approved).length;
+
+  // ============================================
   // RENDER: LOGIN FORM
   // ============================================
 
@@ -366,7 +450,7 @@ function Admin() {
               Admin Dashboard
             </h1>
             <p className="text-sm text-[var(--text-muted)] mt-1">
-              Manage systems, impact entries, supporters, and inquiries
+              Manage systems, impact entries, supporters, inquiries, and endorsements
             </p>
           </div>
           <button
@@ -384,6 +468,7 @@ function Admin() {
             { id: "impact" as TabId, label: "Manage Impact" },
             { id: "supporters" as TabId, label: "Manage Supporters" },
             { id: "inquiries" as TabId, label: "Collaboration Inquiries" },
+            { id: "endorsements" as TabId, label: "Manage Endorsements" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -754,6 +839,139 @@ function Admin() {
           </section>
         )}
 
+        {/* ========== ENDORSEMENTS TAB ========== */}
+        {activeTab === "endorsements" && (
+          <section>
+            {/* Warning for too many featured endorsements */}
+            {featuredApprovedCount > 3 && (
+              <div className="mb-6 p-4 border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-sm">
+                Warning: More than 3 endorsements are featured. Only 3 will display on homepage.
+              </div>
+            )}
+
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold">Endorsements</h2>
+              <button
+                onClick={() => setIsAddingEndorsement(true)}
+                className="px-4 py-2 text-sm bg-[var(--text-primary)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity duration-150"
+              >
+                Add New Endorsement
+              </button>
+            </div>
+
+            {/* Add/Edit Endorsement Form */}
+            {(isAddingEndorsement || editingEndorsement) && (
+              <EndorsementForm
+                endorsement={editingEndorsement}
+                onSave={handleSaveEndorsement}
+                onCancel={() => {
+                  setIsAddingEndorsement(false);
+                  setEditingEndorsement(null);
+                }}
+                inputClasses={inputClasses}
+              />
+            )}
+
+            {/* Endorsements Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--border-subtle)]">
+                    <th className="text-left py-3 pr-4 text-[var(--text-muted)] font-medium">Name</th>
+                    <th className="text-left py-3 pr-4 text-[var(--text-muted)] font-medium hidden sm:table-cell">Organisation</th>
+                    <th className="text-left py-3 pr-4 text-[var(--text-muted)] font-medium hidden md:table-cell">Slug</th>
+                    <th className="text-center py-3 pr-4 text-[var(--text-muted)] font-medium">Featured</th>
+                    <th className="text-center py-3 pr-4 text-[var(--text-muted)] font-medium">Approved</th>
+                    <th className="text-right py-3 text-[var(--text-muted)] font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {endorsements.map((endorsement) => (
+                    <tr key={endorsement.id} className="border-b border-[var(--border-subtle)]">
+                      <td className="py-4 pr-4">
+                        <span className="text-[var(--text-primary)]">{endorsement.name}</span>
+                        <span className="block text-xs text-[var(--text-muted)] mt-1">
+                          {endorsement.role}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-4 text-[var(--text-secondary)] hidden sm:table-cell">
+                        {endorsement.organisation}
+                      </td>
+                      <td className="py-4 pr-4 text-[var(--text-muted)] font-mono text-xs hidden md:table-cell">
+                        {endorsement.slug}
+                      </td>
+                      <td className="py-4 pr-4 text-center">
+                        <span
+                          className={`inline-block px-2 py-1 text-xs border ${
+                            endorsement.featured
+                              ? "border-[#06b6d4]/50 bg-[#06b6d4]/10 text-[#06b6d4]"
+                              : "border-[#27272a] text-[var(--text-muted)]"
+                          }`}
+                        >
+                          {endorsement.featured ? "Yes" : "No"}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-4 text-center">
+                        <span
+                          className={`inline-block px-2 py-1 text-xs border ${
+                            endorsement.approved
+                              ? "border-green-500/50 bg-green-500/10 text-green-400"
+                              : "border-[#27272a] text-[var(--text-muted)]"
+                          }`}
+                        >
+                          {endorsement.approved ? "Yes" : "No"}
+                        </span>
+                      </td>
+                      <td className="py-4 text-right">
+                        <div className="flex justify-end gap-2 flex-wrap">
+                          <button
+                            onClick={() => setEditingEndorsement(endorsement)}
+                            className="px-3 py-1 text-xs border border-[#27272a] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)] transition-colors duration-150"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleToggleEndorsementApproved(endorsement.id)}
+                            className={`px-3 py-1 text-xs border transition-colors duration-150 ${
+                              endorsement.approved
+                                ? "border-green-500/30 text-green-400 hover:border-green-500/60"
+                                : "border-[#27272a] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                            }`}
+                          >
+                            {endorsement.approved ? "Unapprove" : "Approve"}
+                          </button>
+                          <button
+                            onClick={() => handleToggleEndorsementFeatured(endorsement.id)}
+                            className={`px-3 py-1 text-xs border transition-colors duration-150 ${
+                              endorsement.featured
+                                ? "border-[#06b6d4]/30 text-[#06b6d4] hover:border-[#06b6d4]/60"
+                                : "border-[#27272a] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                            }`}
+                          >
+                            {endorsement.featured ? "Unfeature" : "Feature"}
+                          </button>
+                          <button
+                            onClick={() => handleCopyShareLink(endorsement.slug)}
+                            className="px-3 py-1 text-xs border border-[#27272a] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)] transition-colors duration-150"
+                          >
+                            {copiedSlug === endorsement.slug ? "Copied!" : "Copy Link"}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEndorsement(endorsement.id)}
+                            className="px-3 py-1 text-xs border border-red-500/30 text-red-400 hover:border-red-500/60 transition-colors duration-150"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         {/* Back Link */}
         <div className="mt-12 pt-8 border-t border-[var(--border-subtle)]">
           <InternalLink href="/">Back to Home</InternalLink>
@@ -1069,6 +1287,173 @@ function SupporterForm({ supporter, onSave, onCancel, inputClasses }: SupporterF
           className="px-4 py-2 text-sm bg-[var(--text-primary)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity duration-150"
         >
           {supporter ? "Save Changes" : "Add Supporter"}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm border border-[#27272a] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)] transition-colors duration-150"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+interface EndorsementFormProps {
+  endorsement: Endorsement | null;
+  onSave: (endorsement: Endorsement) => void;
+  onCancel: () => void;
+  inputClasses: string;
+}
+
+function EndorsementForm({ endorsement, onSave, onCancel, inputClasses }: EndorsementFormProps) {
+  const [form, setForm] = useState<Endorsement>(
+    endorsement || {
+      id: "",
+      name: "",
+      role: "",
+      organisation: "",
+      content: "",
+      linkedinUrl: "",
+      slug: "",
+      featured: false,
+      approved: false,
+    }
+  );
+
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  const handleOrganisationChange = (value: string) => {
+    setForm(prev => ({
+      ...prev,
+      organisation: value,
+      // Auto-generate slug if not manually edited
+      slug: slugManuallyEdited ? prev.slug : generateSlug(value),
+    }));
+  };
+
+  const handleSlugChange = (value: string) => {
+    setSlugManuallyEdited(true);
+    setForm(prev => ({ ...prev, slug: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(form);
+  };
+
+  const shareUrl = `/recognition/${form.slug}`;
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-8 p-6 bg-[var(--bg-elevated)] border border-[#27272a]">
+      <h3 className="text-lg font-semibold mb-6">
+        {endorsement ? "Edit Endorsement" : "Add New Endorsement"}
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm text-[var(--text-secondary)] mb-2">Name *</label>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className={inputClasses}
+            placeholder="e.g. Arun Kumar"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-[var(--text-secondary)] mb-2">Role *</label>
+          <input
+            type="text"
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            className={inputClasses}
+            placeholder="e.g. Technical Director"
+            required
+          />
+        </div>
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm text-[var(--text-secondary)] mb-2">Organisation *</label>
+        <input
+          type="text"
+          value={form.organisation}
+          onChange={(e) => handleOrganisationChange(e.target.value)}
+          className={inputClasses}
+          placeholder="e.g. Lion Circuits"
+          required
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm text-[var(--text-secondary)] mb-2">Content/Quote *</label>
+        <textarea
+          value={form.content}
+          onChange={(e) => setForm({ ...form, content: e.target.value })}
+          className={`${inputClasses} min-h-[100px] resize-y`}
+          placeholder="The endorsement quote or content..."
+          required
+        />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm text-[var(--text-secondary)] mb-2">LinkedIn URL (optional)</label>
+          <input
+            type="url"
+            value={form.linkedinUrl}
+            onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
+            className={inputClasses}
+            placeholder="https://linkedin.com/in/..."
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-[var(--text-secondary)] mb-2">
+            Slug <span className="text-[var(--text-muted)]">(auto-generated, editable)</span>
+          </label>
+          <input
+            type="text"
+            value={form.slug}
+            onChange={(e) => handleSlugChange(e.target.value)}
+            className={inputClasses}
+            placeholder="organisation-2026"
+          />
+        </div>
+      </div>
+      
+      {/* Preview share link */}
+      {form.slug && (
+        <div className="mb-6 p-3 bg-[var(--bg)] border border-[var(--border-subtle)]">
+          <span className="text-xs text-[var(--text-muted)]">Share URL preview:</span>
+          <span className="block font-mono text-sm text-[#06b6d4] mt-1">{shareUrl}</span>
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-6 mb-6">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.featured}
+            onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            className="w-4 h-4 accent-[#06b6d4]"
+          />
+          <span className="text-sm text-[var(--text-secondary)]">Is Featured</span>
+        </label>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.approved}
+            onChange={(e) => setForm({ ...form, approved: e.target.checked })}
+            className="w-4 h-4 accent-green-500"
+          />
+          <span className="text-sm text-[var(--text-secondary)]">Is Approved</span>
+        </label>
+      </div>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          className="px-4 py-2 text-sm bg-[var(--text-primary)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity duration-150"
+        >
+          {endorsement ? "Save Changes" : "Add Endorsement"}
         </button>
         <button
           type="button"
