@@ -1,0 +1,282 @@
+import { useState, useEffect } from "react";
+import { Link, useParams } from "wouter";
+import { SEO } from "@/components/seo";
+
+interface Endorsement {
+  slug: string;
+  quote: string;
+  name: string;
+  role: string;
+  organisation: string;
+  linkedin_url: string | null;
+}
+
+// Same endorsements data - in production this would come from a shared data file or API
+const endorsements: Endorsement[] = [
+  {
+    slug: "lion-circuits-2026",
+    quote: "Lakshveer demonstrates exceptional understanding of hardware systems for his age. His work on circuit design shows real engineering thinking.",
+    name: "Arun Kumar",
+    role: "Technical Director",
+    organisation: "Lion Circuits",
+    linkedin_url: "https://linkedin.com/in/example1",
+  },
+  {
+    slug: "malpani-ventures-2026",
+    quote: "One of the most impressive young builders we have funded. Clear vision, disciplined execution.",
+    name: "Priya Malpani",
+    role: "Partner",
+    organisation: "Malpani Ventures",
+    linkedin_url: "https://linkedin.com/in/example2",
+  },
+  {
+    slug: "param-foundation-2026",
+    quote: "Lakshveer brings a rare combination of creativity and technical rigor. His makeathon project stood out among participants twice his age.",
+    name: "Rajesh Sharma",
+    role: "Program Director",
+    organisation: "Param Foundation",
+    linkedin_url: "https://linkedin.com/in/example3",
+  },
+  {
+    slug: "hardware-hackathon-2026",
+    quote: "Consistently ships working prototypes. Does not just ideate - he builds.",
+    name: "Vikram Rao",
+    role: "Lead Organizer",
+    organisation: "Hardware Hackathon 2.0",
+    linkedin_url: null,
+  },
+];
+
+// Helper to generate OG description from endorsement
+const generateOGDescription = (endorsement: Endorsement): string => {
+  const truncatedQuote = endorsement.quote.length > 150 
+    ? endorsement.quote.substring(0, 150) + "..." 
+    : endorsement.quote;
+  return `${truncatedQuote} — ${endorsement.name}, ${endorsement.organisation}`;
+};
+
+interface ShareButtonProps {
+  slug: string;
+}
+
+const ShareButton = ({ slug }: ShareButtonProps) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/recognition/${slug}`;
+    
+    // Check if Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Recognition | Lakshveer Rao",
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled or share failed, fallback to copy
+        await copyToClipboard(shareUrl);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="relative inline-flex items-center">
+      <button
+        onClick={handleShare}
+        className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+      >
+        Share ↗
+      </button>
+      {copied && (
+        <span 
+          className="absolute left-full ml-3 text-xs text-[var(--text-muted)] whitespace-nowrap"
+          style={{ animation: "fadeOut 2s ease-out forwards" }}
+        >
+          Link copied
+        </span>
+      )}
+    </div>
+  );
+};
+
+// Not found component
+const NotFound = () => (
+  <div className="min-h-screen">
+    <main className="container-main py-16 md:py-24">
+      <Link
+        href="/recognition"
+        className="inline-block mb-8 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-opacity duration-150"
+      >
+        ← Back to Recognition
+      </Link>
+      <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-6">
+        Endorsement not found
+      </h1>
+      <p className="text-[var(--text-secondary)] mb-8">
+        The endorsement you are looking for does not exist or has been removed.
+      </p>
+      <Link
+        href="/recognition"
+        className="text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+      >
+        View all recognition →
+      </Link>
+    </main>
+  </div>
+);
+
+function RecognitionDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const [endorsement, setEndorsement] = useState<Endorsement | null | undefined>(undefined);
+
+  useEffect(() => {
+    // Find the endorsement by slug
+    const found = endorsements.find((e) => e.slug === slug);
+    setEndorsement(found || null);
+
+    // Update OG meta tags for this specific endorsement
+    if (found) {
+      const ogDescription = generateOGDescription(found);
+      
+      // Update OG description
+      const ogDescMeta = document.querySelector('meta[property="og:description"]');
+      if (ogDescMeta) {
+        ogDescMeta.setAttribute("content", ogDescription);
+      }
+      
+      // Update Twitter description
+      const twitterDescMeta = document.querySelector('meta[name="twitter:description"]');
+      if (twitterDescMeta) {
+        twitterDescMeta.setAttribute("content", ogDescription);
+      }
+
+      // Update OG URL
+      let ogUrlMeta = document.querySelector('meta[property="og:url"]');
+      if (!ogUrlMeta) {
+        ogUrlMeta = document.createElement("meta");
+        ogUrlMeta.setAttribute("property", "og:url");
+        document.head.appendChild(ogUrlMeta);
+      }
+      ogUrlMeta.setAttribute("content", `${window.location.origin}/recognition/${slug}`);
+    }
+  }, [slug]);
+
+  // Loading state
+  if (endorsement === undefined) {
+    return (
+      <div className="min-h-screen">
+        <main className="container-main py-16 md:py-24">
+          <div className="text-[var(--text-muted)]">Loading...</div>
+        </main>
+      </div>
+    );
+  }
+
+  // Not found state
+  if (endorsement === null) {
+    return <NotFound />;
+  }
+
+  const ogDescription = generateOGDescription(endorsement);
+  const ogImageUrl = `/api/og/recognition/${endorsement.slug}`;
+
+  return (
+    <div className="min-h-screen">
+      <SEO 
+        title="Recognition | Lakshveer Rao"
+        description={ogDescription}
+        ogImage={ogImageUrl}
+      />
+      
+      <main className="container-main py-16 md:py-24">
+        {/* Back link */}
+        <Link
+          href="/recognition"
+          className="inline-block mb-12 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-opacity duration-150"
+        >
+          ← Back to Recognition
+        </Link>
+
+        {/* Quote - displayed prominently without quotation marks */}
+        <blockquote className="mb-12">
+          <p className="text-2xl md:text-3xl lg:text-4xl text-[var(--text-primary)] leading-relaxed font-normal tracking-tight">
+            {endorsement.quote}
+          </p>
+        </blockquote>
+
+        {/* Attribution */}
+        <div className="space-y-2 mb-8">
+          <p className="text-xl text-[var(--text-primary)] font-semibold">
+            — {endorsement.name}
+          </p>
+          <p className="text-[var(--text-secondary)]">
+            {endorsement.role}
+          </p>
+          <p className="text-[var(--text-muted)]">
+            {endorsement.organisation}
+          </p>
+        </div>
+
+        {/* Links */}
+        <div className="flex items-center gap-6 pt-4 border-t border-[var(--border-subtle)]">
+          {endorsement.linkedin_url && (
+            <a
+              href={endorsement.linkedin_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+            >
+              LinkedIn ↗
+            </a>
+          )}
+          <ShareButton slug={endorsement.slug} />
+        </div>
+      </main>
+
+      {/* Minimal Footer */}
+      <footer className="container-main pb-16">
+        <div className="border-t border-[var(--border-subtle)] pt-12">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-[var(--text-primary)] font-medium">
+                Lakshveer Rao (Age 8)
+              </p>
+              <p className="text-[var(--text-muted)] text-sm">
+                Hardware + AI Systems Builder
+              </p>
+            </div>
+            <Link
+              href="/"
+              className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+            >
+              ← Home
+            </Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default RecognitionDetail;

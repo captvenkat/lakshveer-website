@@ -6,6 +6,7 @@ import Venture from "./pages/venture";
 import Collaborate from "./pages/collaborate";
 import Admin from "./pages/admin";
 import Recognition from "./pages/recognition";
+import RecognitionDetail from "./pages/recognition-detail";
 import { Provider } from "./components/provider";
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
                                 <Route path="/collaborate" component={Collaborate} />
                                 <Route path="/admin" component={Admin} />
                                 <Route path="/recognition" component={Recognition} />
-                                <Route path="/recognition/:slug" component={Recognition} />
+                                <Route path="/recognition/:slug" component={RecognitionDetail} />
                         </Switch>
                 </Provider>
         );

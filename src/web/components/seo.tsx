@@ -3,18 +3,21 @@ import { useEffect } from "react";
 interface SEOProps {
   title?: string;
   description?: string;
+  ogImage?: string;
 }
 
 const DEFAULT_TITLE = "Lakshveer Rao | Hardware + AI Systems Builder";
 const DEFAULT_DESCRIPTION = "Building deployable autonomous hardware and AI systems from India. Age 8. Co-Founder of Projects by Laksh.";
+const DEFAULT_OG_IMAGE = "/og-image.png";
 
 /**
  * SEO component for managing page-specific metadata
  * Updates document title and meta tags dynamically
  */
-export function SEO({ title, description }: SEOProps) {
+export function SEO({ title, description, ogImage }: SEOProps) {
   const pageTitle = title ? `${title}` : DEFAULT_TITLE;
   const pageDescription = description || DEFAULT_DESCRIPTION;
+  const pageOgImage = ogImage || DEFAULT_OG_IMAGE;
 
   useEffect(() => {
     // Update document title
@@ -38,6 +41,12 @@ export function SEO({ title, description }: SEOProps) {
       ogDescription.setAttribute("content", pageDescription);
     }
 
+    // Update OG image
+    const ogImageMeta = document.querySelector('meta[property="og:image"]');
+    if (ogImageMeta) {
+      ogImageMeta.setAttribute("content", pageOgImage);
+    }
+
     // Update Twitter title
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) {
@@ -50,6 +59,12 @@ export function SEO({ title, description }: SEOProps) {
       twitterDescription.setAttribute("content", pageDescription);
     }
 
+    // Update Twitter image
+    const twitterImage = document.querySelector('meta[name="twitter:image"]');
+    if (twitterImage) {
+      twitterImage.setAttribute("content", pageOgImage);
+    }
+
     // Cleanup: reset to default on unmount
     return () => {
       document.title = DEFAULT_TITLE;
@@ -57,8 +72,16 @@ export function SEO({ title, description }: SEOProps) {
       if (metaDesc) {
         metaDesc.setAttribute("content", DEFAULT_DESCRIPTION);
       }
+      const ogImg = document.querySelector('meta[property="og:image"]');
+      if (ogImg) {
+        ogImg.setAttribute("content", DEFAULT_OG_IMAGE);
+      }
+      const twitterImg = document.querySelector('meta[name="twitter:image"]');
+      if (twitterImg) {
+        twitterImg.setAttribute("content", DEFAULT_OG_IMAGE);
+      }
     };
-  }, [pageTitle, pageDescription]);
+  }, [pageTitle, pageDescription, pageOgImage]);
 
   return null;
 }
