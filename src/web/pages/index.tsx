@@ -153,18 +153,13 @@ function Index() {
                 Lakshveer Rao <span className="text-[var(--text-secondary)] font-normal">(Age 8)</span>
               </h1>
               <p className="text-xl md:text-2xl text-[var(--text-secondary)] mb-2">
-                Co-Founder | Builder | Hardware + AI Systems Engineer | Game Designer
+                Hardware + AI Systems Builder
               </p>
               <p className="text-lg text-[var(--text-muted)] mb-6">
                 Co-Founder & Partner — Projects by Laksh
               </p>
-              <p className="text-lg text-[var(--text-secondary)] mb-4 leading-relaxed max-w-xl">
-                Lakshveer Rao builds to learn.
-                <br />
-                He builds real working systems across electronics, robotics, computer vision, AI devices, and motion-controlled games.
-              </p>
-              <p className="text-base text-[var(--text-muted)] mb-10">
-                Operating Principle: build → fail → debug → ship.
+              <p className="text-lg text-[var(--text-secondary)] mb-10">
+                Builds to learn.
               </p>
               <nav className="flex flex-wrap gap-6 md:gap-8">
                 <InternalLink href="/systems">Systems</InternalLink>
