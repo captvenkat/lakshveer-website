@@ -45,8 +45,8 @@
   --text-primary: #f4f4f5;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
-  --accent: #06b6d4;
-  --accent-hover: #22d3ee;
+  --accent: #22d3ee;
+  --accent-hover: #67e8f9;
   --border-subtle: rgba(244, 244, 245, 0.12);
   
   /* Typography */
@@ -75,20 +75,20 @@
   --destructive: #ef4444;
   --border: rgba(244, 244, 245, 0.08);
   --input: rgba(244, 244, 245, 0.08);
-  --ring: #06b6d4;
-  --chart-1: #06b6d4;
-  --chart-2: #22d3ee;
+  --ring: #22d3ee;
+  --chart-1: #22d3ee;
+  --chart-2: #67e8f9;
   --chart-3: #67e8f9;
   --chart-4: #a5f3fc;
   --chart-5: #cffafe;
   --sidebar: #18181b;
   --sidebar-foreground: #f4f4f5;
-  --sidebar-primary: #06b6d4;
+  --sidebar-primary: #22d3ee;
   --sidebar-primary-foreground: #09090b;
   --sidebar-accent: #27272a;
   --sidebar-accent-foreground: #f4f4f5;
   --sidebar-border: rgba(244, 244, 245, 0.08);
-  --sidebar-ring: #06b6d4;
+  --sidebar-ring: #22d3ee;
 }
 
 @theme inline {

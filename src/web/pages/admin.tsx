@@ -179,7 +179,7 @@ function Admin() {
 
   // Input base classes
   const inputClasses =
-    "w-full px-4 py-3 bg-[var(--bg)] border border-[#27272a] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#06b6d4] transition-[border-color] duration-150";
+    "w-full px-4 py-3 bg-[var(--bg)] border border-[#27272a] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#22d3ee] transition-[border-color] duration-150";
 
   // ============================================
   // AUTH HANDLERS
@@ -534,7 +534,7 @@ function Admin() {
                         {categoryLabels[system.category]}
                       </td>
                       <td className="py-4 pr-4 text-center">
-                        <span className={system.featured ? "text-[#06b6d4]" : "text-[var(--text-muted)]"}>
+                        <span className={system.featured ? "text-[#22d3ee]" : "text-[var(--text-muted)]"}>
                           {system.featured ? "Yes" : "No"}
                         </span>
                       </td>
@@ -616,7 +616,7 @@ function Admin() {
                         {entry.organisation}
                       </td>
                       <td className="py-4 pr-4 text-center">
-                        <span className={entry.featured ? "text-[#06b6d4]" : "text-[var(--text-muted)]"}>
+                        <span className={entry.featured ? "text-[#22d3ee]" : "text-[var(--text-muted)]"}>
                           {entry.featured ? "Yes" : "No"}
                         </span>
                       </td>
@@ -693,7 +693,7 @@ function Admin() {
                         </span>
                       </td>
                       <td className="py-4 pr-4 text-center">
-                        <span className={supporter.featured ? "text-[#06b6d4]" : "text-[var(--text-muted)]"}>
+                        <span className={supporter.featured ? "text-[#22d3ee]" : "text-[var(--text-muted)]"}>
                           {supporter.featured ? "Yes" : "No"}
                         </span>
                       </td>
@@ -817,7 +817,7 @@ function Admin() {
                             onClick={() => handleToggleInquiryHandled(inquiry.id)}
                             className={`px-3 py-1 text-xs border transition-colors duration-150 ${
                               inquiry.handled
-                                ? "border-[#06b6d4]/30 text-[#06b6d4] hover:border-[#06b6d4]/60"
+                                ? "border-[#22d3ee]/30 text-[#22d3ee] hover:border-[#22d3ee]/60"
                                 : "border-[#27272a] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                             }`}
                           >
@@ -904,7 +904,7 @@ function Admin() {
                         <span
                           className={`inline-block px-2 py-1 text-xs border ${
                             endorsement.featured
-                              ? "border-[#06b6d4]/50 bg-[#06b6d4]/10 text-[#06b6d4]"
+                              ? "border-[#22d3ee]/50 bg-[#22d3ee]/10 text-[#22d3ee]"
                               : "border-[#27272a] text-[var(--text-muted)]"
                           }`}
                         >
@@ -944,7 +944,7 @@ function Admin() {
                             onClick={() => handleToggleEndorsementFeatured(endorsement.id)}
                             className={`px-3 py-1 text-xs border transition-colors duration-150 ${
                               endorsement.featured
-                                ? "border-[#06b6d4]/30 text-[#06b6d4] hover:border-[#06b6d4]/60"
+                                ? "border-[#22d3ee]/30 text-[#22d3ee] hover:border-[#22d3ee]/60"
                                 : "border-[#27272a] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                             }`}
                           >
@@ -1067,7 +1067,7 @@ function SystemForm({ system, onSave, onCancel, inputClasses }: SystemFormProps)
             type="checkbox"
             checked={form.featured}
             onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-            className="w-4 h-4 accent-[#06b6d4]"
+            className="w-4 h-4 accent-[#22d3ee]"
           />
           <span className="text-sm text-[var(--text-secondary)]">Is Featured</span>
         </label>
@@ -1187,7 +1187,7 @@ function ImpactForm({ entry, onSave, onCancel, inputClasses }: ImpactFormProps) 
             type="checkbox"
             checked={form.featured}
             onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-            className="w-4 h-4 accent-[#06b6d4]"
+            className="w-4 h-4 accent-[#22d3ee]"
           />
           <span className="text-sm text-[var(--text-secondary)]">Is Featured</span>
         </label>
@@ -1276,7 +1276,7 @@ function SupporterForm({ supporter, onSave, onCancel, inputClasses }: SupporterF
             type="checkbox"
             checked={form.featured}
             onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-            className="w-4 h-4 accent-[#06b6d4]"
+            className="w-4 h-4 accent-[#22d3ee]"
           />
           <span className="text-sm text-[var(--text-secondary)]">Is Featured</span>
         </label>
@@ -1424,7 +1424,7 @@ function EndorsementForm({ endorsement, onSave, onCancel, inputClasses }: Endors
       {form.slug && (
         <div className="mb-6 p-3 bg-[var(--bg)] border border-[var(--border-subtle)]">
           <span className="text-xs text-[var(--text-muted)]">Share URL preview:</span>
-          <span className="block font-mono text-sm text-[#06b6d4] mt-1">{shareUrl}</span>
+          <span className="block font-mono text-sm text-[#22d3ee] mt-1">{shareUrl}</span>
         </div>
       )}
 
@@ -1434,7 +1434,7 @@ function EndorsementForm({ endorsement, onSave, onCancel, inputClasses }: Endors
             type="checkbox"
             checked={form.featured}
             onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-            className="w-4 h-4 accent-[#06b6d4]"
+            className="w-4 h-4 accent-[#22d3ee]"
           />
           <span className="text-sm text-[var(--text-secondary)]">Is Featured</span>
         </label>

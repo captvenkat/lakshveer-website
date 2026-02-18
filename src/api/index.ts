@@ -132,7 +132,7 @@ app.get('/og/recognition/:slug', (c) => {
   </text>
   
   <!-- Decorative accent line at bottom -->
-  <rect x="0" y="${height - 8}" width="${width}" height="8" fill="#06b6d4"/>
+  <rect x="0" y="${height - 8}" width="${width}" height="8" fill="#22d3ee"/>
 </svg>`;
 
   return c.body(svg, {

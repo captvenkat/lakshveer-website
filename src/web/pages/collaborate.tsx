@@ -98,7 +98,7 @@ function Collaborate() {
   };
 
   const inputBaseClasses =
-    "w-full px-4 py-3 bg-[var(--bg)] border border-[#27272a] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#06b6d4] transition-[border-color] duration-150";
+    "w-full px-4 py-3 bg-[var(--bg)] border border-[#27272a] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#22d3ee] transition-[border-color] duration-150";
 
   return (
     <div className="min-h-screen">
@@ -289,7 +289,7 @@ function Collaborate() {
               <div className="flex flex-col md:items-end gap-2">
                 <a 
                   href="mailto:contact@projectsbylaksh.com" 
-                  className="text-sm text-[#06b6d4] hover:opacity-80 transition-opacity duration-150"
+                  className="text-sm text-[#22d3ee] hover:opacity-80 transition-opacity duration-150"
                 >
                   contact@projectsbylaksh.com
                 </a>
