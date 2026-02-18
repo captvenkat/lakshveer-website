@@ -68,7 +68,7 @@ const stats = [
   { label: "Age", value: "8" },
   { label: "Systems Built", value: "25+" },
   { label: "Products Shipped", value: "3" },
-  { label: "Workshops Delivered", value: "12+" },
+  { label: "Workshops Conducted", value: "5+" },
   { label: "Grants & Scholarships", value: "₹1.4L+" },
 ];
 
