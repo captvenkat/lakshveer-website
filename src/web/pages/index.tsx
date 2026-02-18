@@ -65,7 +65,7 @@ const impactEntries = [
 
 // Momentum Stats - Updated as specified
 const stats = [
-  { label: "Age", value: "8" },
+  { label: "Ebook Sales", value: "100+" },
   { label: "Systems Built", value: "25+" },
   { label: "Products Shipped", value: "3" },
   { label: "Workshops Conducted", value: "5+" },
