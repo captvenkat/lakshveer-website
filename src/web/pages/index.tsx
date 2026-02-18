@@ -195,7 +195,7 @@ const ShareButton = ({ slug }: ShareButtonProps) => {
       </button>
       {copied && (
         <span 
-          className="absolute left-full ml-3 text-xs text-[var(--text-muted)] whitespace-nowrap"
+          className="absolute left-full ml-3 text-xs text-[var(--text-secondary)] whitespace-nowrap"
           style={{ animation: "fadeOut 2s forwards" }}
         >
           Link copied
@@ -317,7 +317,7 @@ function Index() {
           <ul className="space-y-3 mb-10">
             {autonomousSystems.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <span className="text-[var(--text-muted)] select-none">•</span>
+                <span className="text-[var(--text-secondary)] select-none">•</span>
                 <span className="text-[var(--text-secondary)]">{item}</span>
               </li>
             ))}
@@ -337,10 +337,10 @@ function Index() {
                 href={backer.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group aspect-[3/2] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center p-4 opacity-60 hover:opacity-100 transition-opacity duration-200"
+                className="group aspect-[3/2] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center p-4 hover:border-[var(--text-muted)] transition-[border-color] duration-200"
                 aria-label={backer.name}
               >
-                <span className="text-sm text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors duration-200 text-center">
+                <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors duration-200 text-center">
                   {backer.name} ↗
                 </span>
               </a>
@@ -362,7 +362,7 @@ function Index() {
               >
                 {entry.year && (
                   <>
-                    <span className="font-mono text-sm text-[var(--text-muted)] sm:w-20 shrink-0">
+                    <span className="font-mono text-sm text-[var(--text-secondary)] sm:w-20 shrink-0">
                       {entry.year}
                     </span>
                     <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
@@ -372,7 +372,7 @@ function Index() {
                   {entry.event}
                 </span>
                 <span className="hidden sm:inline text-[var(--text-secondary)] mx-4">—</span>
-                <span className="font-mono text-sm text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors duration-150">
+                <span className="font-mono text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors duration-150">
                   {entry.detail}
                 </span>
               </a>
@@ -430,7 +430,7 @@ function Index() {
           <ul className="space-y-3 mb-10">
             {collaborateItems.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <span className="text-[var(--text-muted)] select-none">•</span>
+                <span className="text-[var(--text-secondary)] select-none">•</span>
                 <span className="text-[var(--text-secondary)]">{item}</span>
               </li>
             ))}
@@ -447,7 +447,7 @@ function Index() {
             <div>
               <h3 className="text-xl font-semibold mb-2">Lakshveer Rao</h3>
               <p className="text-[var(--text-secondary)] mb-1">Co-Founder — Projects by Laksh</p>
-              <p className="text-[var(--text-muted)] text-sm mb-6">Based in Hyderabad, India (UTC+5:30)</p>
+              <p className="text-[var(--text-secondary)] text-sm mb-6">Based in Hyderabad, India (UTC+5:30)</p>
               
               {/* Laksh Social Links */}
               <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -467,10 +467,10 @@ function Index() {
             
             {/* Right column - Primary Contact info */}
             <div className="lg:text-right">
-              <p className="text-sm text-[var(--text-muted)] mb-4">Primary Contact:</p>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">Primary Contact:</p>
               <h4 className="text-lg font-semibold mb-1">Capt. Venkat</h4>
               <p className="text-sm text-[var(--text-secondary)] mb-1">Co-Founder | First Investor | Operations & Systems</p>
-              <p className="text-sm text-[var(--text-muted)] mb-6">Primary Point of Contact</p>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">Primary Point of Contact</p>
               
               {/* Founder / Ops Links */}
               <div className="flex flex-wrap lg:justify-end gap-x-4 gap-y-2">

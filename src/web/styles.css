@@ -47,7 +47,7 @@
   --text-muted: #71717a;
   --accent: #06b6d4;
   --accent-hover: #22d3ee;
-  --border-subtle: rgba(244, 244, 245, 0.08);
+  --border-subtle: rgba(244, 244, 245, 0.12);
   
   /* Typography */
   --font-sans: 'Geist Sans', system-ui, -apple-system, sans-serif;
