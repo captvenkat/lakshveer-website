@@ -58,11 +58,11 @@ function Venture() {
           </h2>
           <div className="flex flex-wrap items-center gap-3 md:gap-4 font-mono text-lg md:text-xl text-[var(--text-secondary)]">
             <span className="text-[var(--text-primary)]">Build</span>
-            <span className="text-[var(--text-muted)]">→</span>
+            <span className="text-[var(--text-secondary)]">→</span>
             <span className="text-[var(--text-primary)]">Test</span>
-            <span className="text-[var(--text-muted)]">→</span>
+            <span className="text-[var(--text-secondary)]">→</span>
             <span className="text-[var(--text-primary)]">Deploy</span>
-            <span className="text-[var(--text-muted)]">→</span>
+            <span className="text-[var(--text-secondary)]">→</span>
             <span className="text-[var(--text-primary)]">Iterate</span>
           </div>
         </section>

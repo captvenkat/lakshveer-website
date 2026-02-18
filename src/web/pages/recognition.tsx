@@ -163,7 +163,7 @@ function Recognition() {
         <header className="mb-16 md:mb-20">
           <Link
             href="/"
-            className="inline-block mb-8 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-opacity duration-150"
+            className="inline-block mb-8 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-opacity duration-150"
           >
             ← Back
           </Link>
@@ -187,7 +187,7 @@ function Recognition() {
       <footer className="container-main pb-16">
         <div className="border-t border-[var(--border-subtle)] pt-12">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <p className="text-[var(--text-muted)] text-sm">
+            <p className="text-[var(--text-secondary)] text-sm">
               Lakshveer Rao — Projects by Laksh
             </p>
             <Link

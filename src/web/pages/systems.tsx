@@ -88,7 +88,7 @@ function Systems() {
       <main className="container-main py-16 md:py-24">
         {/* Header */}
         <header className="mb-16 md:mb-20">
-          <Link href="/" className="inline-block mb-8 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors duration-150">
+          <Link href="/" className="inline-block mb-8 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-150">
             ← Back
           </Link>
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
@@ -136,7 +136,7 @@ function Systems() {
       <footer className="container-main pb-16">
         <div className="border-t border-[var(--border-subtle)] pt-12">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <p className="text-[var(--text-muted)] text-sm">
+            <p className="text-[var(--text-secondary)] text-sm">
               Lakshveer Rao — Projects by Laksh
             </p>
             <Link href="/" className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150">

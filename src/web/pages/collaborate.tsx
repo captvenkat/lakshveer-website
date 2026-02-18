@@ -123,7 +123,7 @@ function Collaborate() {
               <ul className="space-y-4">
                 {whatWeNeed.map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <span className="text-[var(--text-muted)] select-none mt-0.5">-</span>
+                    <span className="text-[var(--text-secondary)] select-none mt-0.5">-</span>
                     <span className="text-[var(--text-secondary)]">{item}</span>
                   </li>
                 ))}
@@ -136,7 +136,7 @@ function Collaborate() {
               <ul className="space-y-4">
                 {whatWeOffer.map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <span className="text-[var(--text-muted)] select-none mt-0.5">-</span>
+                    <span className="text-[var(--text-secondary)] select-none mt-0.5">-</span>
                     <span className="text-[var(--text-secondary)]">{item}</span>
                   </li>
                 ))}
@@ -277,15 +277,15 @@ function Collaborate() {
             <div>
               <h3 className="text-xl font-semibold mb-2">Lakshveer Rao</h3>
               <p className="text-[var(--text-secondary)] mb-1">Co-Founder — Projects by Laksh</p>
-              <p className="text-[var(--text-muted)] text-sm">Based in Hyderabad, India (UTC+5:30)</p>
+              <p className="text-[var(--text-secondary)] text-sm">Based in Hyderabad, India (UTC+5:30)</p>
             </div>
             
             {/* Right column - Contact info */}
             <div className="md:text-right">
-              <p className="text-sm text-[var(--text-muted)] mb-4">Primary Contact:</p>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">Primary Contact:</p>
               <h4 className="text-lg font-semibold mb-1">Capt. Venkat</h4>
               <p className="text-sm text-[var(--text-secondary)] mb-1">First Backer, Investor & Operations Lead</p>
-              <p className="text-sm text-[var(--text-muted)] mb-4">Primary Point of Contact</p>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">Primary Point of Contact</p>
               <div className="flex flex-col md:items-end gap-2">
                 <a 
                   href="mailto:contact@projectsbylaksh.com" 
