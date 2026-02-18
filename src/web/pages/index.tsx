@@ -238,13 +238,17 @@ function Index() {
               </nav>
             </div>
             
-            {/* Right side - Portrait placeholder */}
+            {/* Right side - Portrait */}
             <div className="w-full md:w-auto flex justify-center md:justify-end">
               <div 
-                className="w-[280px] h-[360px] md:w-[300px] md:h-[400px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center"
-                aria-label="Portrait placeholder"
+                className="w-[280px] h-[360px] md:w-[300px] md:h-[400px] overflow-hidden"
+                aria-label="Lakshveer Rao portrait"
               >
-                <span className="text-[var(--text-muted)] font-mono text-sm">Portrait</span>
+                <img 
+                  src="./ea0da555-3289-4c01-8ee4-727074247d0b.jpg"
+                  alt="Lakshveer Rao - Hardware + AI Systems Builder wearing Projects by Laksh polo shirt"
+                  className="w-full h-full object-cover object-top"
+                />
               </div>
             </div>
           </div>
