@@ -245,7 +245,7 @@ function Index() {
                 aria-label="Lakshveer Rao portrait"
               >
                 <img 
-                  src="./ea0da555-3289-4c01-8ee4-727074247d0b.jpg"
+                  src="./864df3d9-9c02-4f36-85e9-c65cb04a3843.jpg"
                   alt="Lakshveer Rao - Hardware + AI Systems Builder wearing Projects by Laksh polo shirt"
                   className="w-full h-full object-cover object-top"
                 />
