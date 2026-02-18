@@ -225,7 +225,9 @@ function Index() {
                 Co-Founder & Partner — Projects by Laksh
               </p>
               <p className="text-lg text-[var(--text-secondary)] mb-4 leading-relaxed max-w-xl">
-                Lakshveer Rao builds to learn. He builds end-to-end deployable systems across electronics, robotics, autonomous machines, computer vision, AI-driven devices, and motion-controlled games.
+                Lakshveer Rao builds to learn.
+                <br />
+                He builds real working systems across electronics, robotics, computer vision, AI devices, and motion-controlled games.
               </p>
               <p className="text-base text-[var(--text-muted)] mb-10">
                 Operating Principle: build → fail → debug → ship.
