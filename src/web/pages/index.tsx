@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { SEO, PAGE_TITLES } from "@/components/seo";
+import { ShareMenu } from "@/components/share-menu";
 
 interface LinkProps {
   href: string;
@@ -138,72 +138,6 @@ const featuredEndorsements: FeaturedEndorsement[] = [
     organisation: "Param Foundation",
   },
 ];
-
-// ShareButton component for endorsements
-interface ShareButtonProps {
-  slug: string;
-}
-
-const ShareButton = ({ slug }: ShareButtonProps) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/recognition/${slug}`;
-    
-    // Check if Web Share API is available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Ecosystem Recognition - Lakshveer Rao",
-          url: shareUrl,
-        });
-      } catch {
-        // User cancelled or share failed, fallback to copy
-        await copyToClipboard(shareUrl);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await copyToClipboard(shareUrl);
-    }
-  };
-
-  const copyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  return (
-    <div className="relative inline-flex items-center">
-      <button
-        onClick={handleShare}
-        className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-      >
-        Share ↗
-      </button>
-      {copied && (
-        <span 
-          className="absolute left-full ml-3 text-xs text-[var(--text-secondary)] whitespace-nowrap"
-          style={{ animation: "fadeOut 2s forwards" }}
-        >
-          Link copied
-        </span>
-      )}
-    </div>
-  );
-};
 
 function Index() {
   return (
@@ -411,8 +345,8 @@ function Index() {
                   </p>
                 </div>
                 
-                {/* Share button */}
-                <ShareButton slug={endorsement.slug} />
+                {/* Share menu */}
+                <ShareMenu slug={endorsement.slug} quote={endorsement.quote} />
               </article>
             ))}
           </div>

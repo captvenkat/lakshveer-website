@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useParams } from "wouter";
 import { SEO } from "@/components/seo";
+import { ShareMenu } from "@/components/share-menu";
 
 interface Endorsement {
   slug: string;
@@ -53,71 +54,6 @@ const generateOGDescription = (endorsement: Endorsement): string => {
     ? endorsement.quote.substring(0, 150) + "..." 
     : endorsement.quote;
   return `${truncatedQuote} — ${endorsement.name}, ${endorsement.organisation}`;
-};
-
-interface ShareButtonProps {
-  slug: string;
-}
-
-const ShareButton = ({ slug }: ShareButtonProps) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/recognition/${slug}`;
-    
-    // Check if Web Share API is available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Recognition | Lakshveer Rao",
-          url: shareUrl,
-        });
-      } catch {
-        // User cancelled or share failed, fallback to copy
-        await copyToClipboard(shareUrl);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await copyToClipboard(shareUrl);
-    }
-  };
-
-  const copyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  return (
-    <div className="relative inline-flex items-center">
-      <button
-        onClick={handleShare}
-        className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-      >
-        Share ↗
-      </button>
-      {copied && (
-        <span 
-          className="absolute left-full ml-3 text-xs text-[var(--text-muted)] whitespace-nowrap"
-          style={{ animation: "fadeOut 2s ease-out forwards" }}
-        >
-          Link copied
-        </span>
-      )}
-    </div>
-  );
 };
 
 // Not found component
@@ -250,7 +186,7 @@ function RecognitionDetail() {
               LinkedIn ↗
             </a>
           )}
-          <ShareButton slug={endorsement.slug} />
+          <ShareMenu slug={endorsement.slug} quote={endorsement.quote} />
         </div>
       </main>
 
