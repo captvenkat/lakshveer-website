@@ -318,6 +318,7 @@ function Index() {
                         endValue={parsed.numeric}
                         prefix={parsed.prefix}
                         suffix={parsed.suffix}
+                        format={parsed.format}
                         duration={2000}
                       />
                     ) : (
