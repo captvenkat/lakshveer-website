@@ -32,7 +32,7 @@ const categoryLabels: Record<string, string> = {
 
 type Tab = "overview" | "messages";
 
-const PASSWORD = "nagolefundaz";
+const PASSWORD = "insidenagole";
 
 function Insider() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
