@@ -1,7 +1,6 @@
 import { SEO, PAGE_TITLES } from "@/components/seo";
 import { ShareMenu } from "@/components/share-menu";
 import { AnimatedCounter, parseStatValue } from "@/components/animated-counter";
-import { LatestYouTube, CurrentlyBuilding } from "@/components/dynamic-hero";
 
 interface LinkProps {
   href: string;
@@ -331,21 +330,6 @@ function Index() {
                 </div>
               );
             })}
-          </div>
-        </section>
-
-        {/* ========== LIVE UPDATES (YouTube + Currently Building) ========== */}
-        <section className="mb-24 md:mb-32">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Currently Building Status */}
-            <div>
-              <CurrentlyBuilding />
-            </div>
-            {/* Latest YouTube Video */}
-            <div>
-              <h3 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider mb-4">Latest Video</h3>
-              <LatestYouTube />
-            </div>
           </div>
         </section>
 
