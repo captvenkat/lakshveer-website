@@ -43,7 +43,7 @@ const shareOptions: ShareOption[] = [
   {
     name: "Email",
     getUrl: (shareUrl, shareText) => 
-      `mailto:?subject=${encodeURIComponent("Recognition for Lakshveer Rao")}&body=${encodeURIComponent(shareText)}%0A%0A${encodeURIComponent(shareUrl)}`,
+      `mailto:?subject=${encodeURIComponent("Voice for Lakshveer Rao")}&body=${encodeURIComponent(shareText)}%0A%0A${encodeURIComponent(shareUrl)}`,
     isExternal: false,
   },
 ];

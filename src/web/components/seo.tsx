@@ -7,7 +7,7 @@ interface SEOProps {
 }
 
 const DEFAULT_TITLE = "Lakshveer Rao | Hardware + AI Systems Builder";
-const DEFAULT_DESCRIPTION = "Building deployable autonomous hardware and AI systems from India. Age 8. Co-Founder of Projects by Laksh.";
+const DEFAULT_DESCRIPTION = "Builds to learn. Age 8. Hyderabad, India.";
 const DEFAULT_OG_IMAGE = "/og-image.png";
 
 /**
@@ -91,8 +91,12 @@ export const PAGE_TITLES = {
   home: "Lakshveer Rao | Hardware + AI Systems Builder",
   systems: "Systems | Lakshveer Rao",
   impact: "Impact | Lakshveer Rao",
+  journey: "Journey | Lakshveer Rao",
   venture: "Projects by Laksh | Venture",
   collaborate: "Collaborate | Lakshveer Rao",
-  admin: "Admin | Projects by Laksh",
-  recognition: "Recognition | Lakshveer Rao",
+  insider: "Insider | Lakshveer Rao",
+  recognition: "Voices | Lakshveer Rao",
+  share: "Share Portfolio | Lakshveer Rao",
+  invite: "Invite Laksh | Guest Talks, Hackathons & Events",
+  press: "Press Kit | Lakshveer Rao",
 } as const;

@@ -1,51 +1,17 @@
 import { useState } from "react";
 import { SEO, PAGE_TITLES } from "@/components/seo";
+import { Header } from "@/components/header";
 
-interface LinkProps {
-  href: string;
-  children: React.ReactNode;
-}
-
-const InternalLink = ({ href, children }: LinkProps) => (
-  <a href={href} className="link-internal">
-    {children}
-  </a>
-);
-
-const ExternalLink = ({ href, children }: LinkProps) => (
-  <a href={href} target="_blank" rel="noopener noreferrer" className="link-external">
-    {children}
-  </a>
-);
-
-// What We Need items
-const whatWeNeed = [
-  "Hardware credits",
-  "Manufacturing support",
-  "Testing environments",
-  "Cloud infrastructure",
-  "Research mentorship",
-  "Grant introductions",
-];
-
-// What We Offer items
-const whatWeOffer = [
-  "Live demonstrations",
-  "Workshops",
-  "Co-created pilots",
-  "Product testing feedback",
-  "Youth innovation representation",
-];
-
-// Category options for the form
 const categoryOptions = [
   { value: "", label: "Select a category" },
-  { value: "hardware-sponsorship", label: "Hardware Sponsorship" },
-  { value: "cloud-credits", label: "Cloud Credits" },
-  { value: "manufacturing-access", label: "Manufacturing Access" },
-  { value: "research-collaboration", label: "Research Collaboration" },
-  { value: "institutional-grant", label: "Institutional Grant" },
-  { value: "media-feature", label: "Media Feature" },
+  { value: "guest-talk", label: "Guest Talk / Lecture Invite" },
+  { value: "hackathon", label: "Hackathon Invite" },
+  { value: "grant", label: "Grant / Funding" },
+  { value: "sponsorship", label: "Sponsorship" },
+  { value: "hardware", label: "Hardware Support" },
+  { value: "mentorship", label: "Mentorship" },
+  { value: "media", label: "Media / Press" },
+  { value: "collaboration", label: "Collaboration" },
   { value: "other", label: "Other" },
 ];
 
@@ -79,22 +45,29 @@ function Collaborate() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // TODO: Integrate with Supabase for data persistence
-    // TODO: Integrate with Resend for email notifications
-    // Example Supabase integration:
-    // const { data, error } = await supabase.from('inquiries').insert([formData]);
-    // 
-    // Example Resend integration:
-    // await fetch('/api/send-email', {
-    //   method: 'POST',
-    //   body: JSON.stringify(formData),
-    // });
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    // Simulate submission delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const result = await response.json();
+      
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        console.error('Contact form error:', result.error);
+        setIsSubmitted(true);
+      }
+    } catch (error) {
+      console.error('Contact form submission failed:', error);
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputBaseClasses =
@@ -103,64 +76,31 @@ function Collaborate() {
   return (
     <div className="min-h-screen">
       <SEO title={PAGE_TITLES.collaborate} />
-      <main className="container-main py-16 md:py-24">
-        {/* Header */}
-        <header className="mb-16 md:mb-20">
+      <Header />
+      <main className="container-main py-8 md:py-16">
+        {/* Page Title */}
+        <div className="mb-12 md:mb-16">
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
-            Collaborate
+            Get in Touch
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-            We are building deployable hardware and AI systems and are open to serious collaboration.
+            If you'd like to support what we're building, or just want to say hi, we'd love to hear from you.
           </p>
-        </header>
+        </div>
 
-        {/* Two Column Layout - What We Need / What We Offer */}
-        <section className="mb-20 md:mb-24">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
-            {/* What We Need */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-8">What We Need</h2>
-              <ul className="space-y-4">
-                {whatWeNeed.map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span className="text-[var(--text-secondary)] select-none mt-0.5">-</span>
-                    <span className="text-[var(--text-secondary)]">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* What We Offer */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-8">What We Offer</h2>
-              <ul className="space-y-4">
-                {whatWeOffer.map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span className="text-[var(--text-secondary)] select-none mt-0.5">-</span>
-                    <span className="text-[var(--text-secondary)]">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Contact Form Section */}
-        <section className="mb-20 md:mb-24">
-          <h2 className="text-2xl font-semibold mb-10">Get in Touch</h2>
-
+        {/* Contact Form */}
+        <section className="max-w-xl">
           {isSubmitted ? (
             <div className="p-8 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
               <p className="text-lg text-[var(--text-primary)] mb-2">
-                Thank you for your inquiry.
+                Thank you for reaching out.
               </p>
               <p className="text-[var(--text-secondary)]">
-                We will respond within 48 hours.
+                We'll get back to you soon.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-              {/* Name Field */}
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label htmlFor="name" className="block text-sm text-[var(--text-secondary)] mb-2">
                   Name
@@ -173,11 +113,10 @@ function Collaborate() {
                   value={formData.name}
                   onChange={handleChange}
                   className={inputBaseClasses}
-                  placeholder="Your full name"
+                  placeholder="Your name"
                 />
               </div>
 
-              {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm text-[var(--text-secondary)] mb-2">
                   Email
@@ -190,31 +129,28 @@ function Collaborate() {
                   value={formData.email}
                   onChange={handleChange}
                   className={inputBaseClasses}
-                  placeholder="your@email.com"
+                  placeholder="you@example.com"
                 />
               </div>
 
-              {/* Organisation Field */}
               <div>
                 <label htmlFor="organisation" className="block text-sm text-[var(--text-secondary)] mb-2">
-                  Organisation
+                  Organisation <span className="text-[var(--text-muted)]">(optional)</span>
                 </label>
                 <input
                   type="text"
                   id="organisation"
                   name="organisation"
-                  required
                   value={formData.organisation}
                   onChange={handleChange}
                   className={inputBaseClasses}
-                  placeholder="Your organisation name"
+                  placeholder="Where you work"
                 />
               </div>
 
-              {/* Category Dropdown */}
               <div>
                 <label htmlFor="category" className="block text-sm text-[var(--text-secondary)] mb-2">
-                  Category
+                  What's this about?
                 </label>
                 <select
                   id="category"
@@ -232,7 +168,6 @@ function Collaborate() {
                 </select>
               </div>
 
-              {/* Message Textarea */}
               <div>
                 <label htmlFor="message" className="block text-sm text-[var(--text-secondary)] mb-2">
                   Message
@@ -245,60 +180,23 @@ function Collaborate() {
                   value={formData.message}
                   onChange={handleChange}
                   className={`${inputBaseClasses} resize-none`}
-                  placeholder="Tell us about your collaboration interest..."
+                  placeholder="What would you like to share?"
                 />
               </div>
 
-              {/* Submit Button */}
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="px-6 py-3 bg-[var(--text-primary)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Sending..." : "Send Inquiry →"}
+                  {isSubmitting ? "Sending..." : "Send Message"}
                 </button>
               </div>
             </form>
           )}
         </section>
-
-        {/* Back Link */}
-        <div>
-          <InternalLink href="/">Back to Home</InternalLink>
-        </div>
       </main>
-
-      {/* Footer */}
-      <footer className="container-main pb-16">
-        <div className="border-t border-[var(--border-subtle)] pt-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Left column - Lakshveer info */}
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Lakshveer Rao</h3>
-              <p className="text-[var(--text-secondary)] mb-1">Co-Founder — Projects by Laksh</p>
-              <p className="text-[var(--text-secondary)] text-sm">Based in Hyderabad, India (UTC+5:30)</p>
-            </div>
-            
-            {/* Right column - Contact info */}
-            <div className="md:text-right">
-              <p className="text-sm text-[var(--text-secondary)] mb-4">Primary Contact:</p>
-              <h4 className="text-lg font-semibold mb-1">Capt. Venkat</h4>
-              <p className="text-sm text-[var(--text-secondary)] mb-1">First Backer, Investor & Operations Lead</p>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">Primary Point of Contact</p>
-              <div className="flex flex-col md:items-end gap-2">
-                <a 
-                  href="mailto:contact@projectsbylaksh.com" 
-                  className="text-sm text-[#22d3ee] hover:opacity-80 transition-opacity duration-150"
-                >
-                  contact@projectsbylaksh.com
-                </a>
-                <ExternalLink href="https://linkedin.com">LinkedIn</ExternalLink>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

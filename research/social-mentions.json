@@ -1,0 +1,162 @@
+{
+  "mentions": [
+    {
+      "source": "x",
+      "author": "@LionCircuits",
+      "authorName": "Lion Circuits",
+      "authorType": "company",
+      "quote": "An 8-year-old just schooled us all at Hardware Hackathon 1.0. Lakshveer Rao built a hydration assistant using a Glyph board + sensor",
+      "url": "https://x.com/LionCircuits/status/1950132910667026934",
+      "context": "Hardware Hackathon 1.0",
+      "keywords": ["8-year-old", "schooled", "hardware", "hackathon", "built"]
+    },
+    {
+      "source": "x",
+      "author": "@itsumeshk",
+      "authorName": "Umesh Kumar",
+      "authorType": "founder",
+      "quote": "An 8 year old, Laksh, built a motion controlled game in just a few hours at a Runable hackathon.",
+      "url": "https://x.com/itsumeshk/status/2018548263423815924",
+      "context": "RunTogether Hackathon",
+      "keywords": ["8 year old", "built", "motion controlled", "hackathon", "hours"]
+    },
+    {
+      "source": "x",
+      "author": "@AadityaYuvraj",
+      "authorName": "Yuvraj Aaditya",
+      "authorType": "founder",
+      "quote": "met Laksh today, an 8 yr old builder and the youngest in @theresidency delta cohort, he's already built projects across hardware, software, games and...",
+      "url": "https://x.com/AadityaYuvraj/status/1987573704013058361",
+      "context": "The Residency Delta Cohort",
+      "keywords": ["youngest", "builder", "delta cohort", "hardware", "software", "games"]
+    },
+    {
+      "source": "x",
+      "author": "@beatsinbrief",
+      "authorName": "Beats in Brief",
+      "authorType": "media",
+      "quote": "Young Generation of India is growing up as builders. Meet Lakshveer Rao: India's youngest hardware startup founder",
+      "url": "https://x.com/beatsinbrief/status/2010345060362301515",
+      "context": "Feature Story",
+      "keywords": ["youngest", "hardware", "startup", "founder", "builders"]
+    },
+    {
+      "source": "x",
+      "author": "@shantanugoel",
+      "authorName": "Shantanu Goel",
+      "authorType": "founder",
+      "quote": "Got Circuit Heroes delivered!! Thanks Lakshya and @CaptVenk for building this!",
+      "url": "https://x.com/shantanugoel/status/1983838346528092421",
+      "context": "Circuit Heroes Purchase",
+      "keywords": ["Circuit Heroes", "delivered", "building"]
+    },
+    {
+      "source": "x",
+      "author": "@shantanugoel",
+      "authorName": "Shantanu Goel",
+      "authorType": "founder",
+      "quote": "Just bought @CaptVenk and Laksh's circuit heroes card game on amazon. This should be great for introducing kids to components!",
+      "url": "https://x.com/shantanugoel/status/1982027217690579157",
+      "context": "Circuit Heroes Purchase",
+      "keywords": ["bought", "circuit heroes", "kids", "components"]
+    },
+    {
+      "source": "x",
+      "author": "@codidactic",
+      "authorName": "Codidactic",
+      "authorType": "media",
+      "quote": "This week we're featuring the father-son duo Laksh @ProjectsByLaksh and Capt. Venkat @CaptVenk from Circuit Heroes. Together, they're turning real-world electronics into playable learning.",
+      "url": "https://x.com/codidactic",
+      "context": "Feature",
+      "keywords": ["featuring", "father-son", "Circuit Heroes", "electronics", "learning"]
+    },
+    {
+      "source": "x",
+      "author": "@ramsri_goutham",
+      "authorName": "Ramsri Goutham",
+      "authorType": "founder",
+      "quote": "Lakshveer Rao (S/O @CaptVenk) - 15k INR. The money is already in the winners' bank accounts!",
+      "url": "https://x.com/ramsri_goutham/status/1931942764004192611",
+      "context": "Micro Scholarship Top 3 Winner",
+      "keywords": ["winner", "scholarship", "money"]
+    },
+    {
+      "source": "x",
+      "author": "@ramsri_goutham",
+      "authorName": "Ramsri Goutham",
+      "authorType": "founder",
+      "quote": "Lakshveer @ProjectsByLaksh - He is a 7 yr old builder working on hands-on tech and robotics projects along with his dad @CaptVenk",
+      "url": "https://x.com/ramsri_goutham/status/1929432690954215762",
+      "context": "Micro Scholarship Shortlist",
+      "keywords": ["builder", "hands-on", "tech", "robotics"]
+    },
+    {
+      "source": "x",
+      "author": "@think_tac",
+      "authorName": "ThinkTac",
+      "authorType": "media",
+      "quote": "Meet Lakshveer Rao at ThinkTac! A bright and curious Grade 2 student who loves exploring how things work! From experimenting with DIY projects...",
+      "url": "https://x.com/think_tac/status/1933343571039400104",
+      "context": "ThinkTac Feature",
+      "keywords": ["bright", "curious", "exploring", "DIY projects"]
+    },
+    {
+      "source": "x",
+      "author": "@scaletogether",
+      "authorName": "Together (Scale)",
+      "authorType": "company",
+      "quote": "Full body Motion Gaming built by Laksh (our youngest builder, all of 8yrs old) at #RunTogether Hackathon this weekend using @runable_hq",
+      "url": "https://x.com/scaletogether/status/2018556342282453396",
+      "context": "RunTogether Hackathon",
+      "keywords": ["youngest builder", "8yrs old", "Motion Gaming", "built"]
+    },
+    {
+      "source": "x",
+      "author": "@runable_hq",
+      "authorName": "Runable",
+      "authorType": "company",
+      "quote": "1/ An 8-year-old showed up and built. That alone changed what we thought was possible.",
+      "url": "https://x.com/runable_hq/status/2018337544975646832",
+      "context": "RunTogether Hackathon Recap",
+      "keywords": ["8-year-old", "showed up", "built", "possible"]
+    },
+    {
+      "source": "x",
+      "author": "@skau98",
+      "authorName": "Kaushik Srinivasan",
+      "authorType": "founder",
+      "quote": "Full body Motion Gaming built by Laksh (our youngest builder, all of 8yrs old)",
+      "url": "https://x.com/skau98",
+      "context": "RunTogether Hackathon",
+      "keywords": ["youngest builder", "Motion Gaming", "built"]
+    },
+    {
+      "source": "x",
+      "author": "@ShubhamKukretii",
+      "authorName": "Shubham Kukreti",
+      "authorType": "founder",
+      "quote": "we had special guests @CaptVenk and Laksh @localhostIND today. Laksh knows more about hardware than I did during my entire engineering.",
+      "url": "https://x.com/ShubhamKukretii/status/1932415998965239900",
+      "context": "Localhost Visit",
+      "keywords": ["special guests", "knows more", "hardware", "engineering"]
+    },
+    {
+      "source": "x",
+      "author": "@MuadDibYasser",
+      "authorName": "Yasser Glasshouse",
+      "authorType": "individual",
+      "quote": "Incredible, Lakshveer! An 8-year-old creating a hydration assistant shows the amazing potential of youth in tech. The future of innovation is...",
+      "url": "https://x.com/MuadDibYasser/status/1950136557278499104",
+      "context": "Hardware Hackathon Comment",
+      "keywords": ["Incredible", "8-year-old", "amazing potential", "future", "innovation"]
+    }
+  ],
+  "stats": {
+    "totalMentions": 15,
+    "uniqueAuthors": 14,
+    "companies": ["Lion Circuits", "Together (Scale)", "Runable"],
+    "media": ["Beats in Brief", "ThinkTac", "Codidactic"],
+    "founders": ["Umesh Kumar", "Yuvraj Aaditya", "Shantanu Goel", "Ramsri Goutham", "Kaushik Srinivasan", "Shubham Kukreti"],
+    "topKeywords": ["8-year-old", "youngest", "builder", "built", "hardware", "hackathon", "Circuit Heroes"]
+  }
+}

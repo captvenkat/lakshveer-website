@@ -1,12 +1,13 @@
 import { SEO, PAGE_TITLES } from "@/components/seo";
+import { Header } from "@/components/header";
 
-interface LeaderCardProps {
+interface TeamMemberProps {
   name: string;
   role: string;
   description?: string;
 }
 
-const LeaderCard = ({ name, role, description }: LeaderCardProps) => (
+const TeamMember = ({ name, role, description }: TeamMemberProps) => (
   <div className="py-6 border-b border-[var(--border-subtle)] last:border-0">
     <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
       {name}
@@ -26,29 +27,71 @@ function Venture() {
   return (
     <div className="min-h-screen">
       <SEO title={PAGE_TITLES.venture} />
-      <main className="container-main py-16 md:py-24">
-        {/* Header */}
-        <header className="mb-16 md:mb-20">
+      <Header />
+      <main className="container-main py-8 md:py-16">
+        {/* Page Title */}
+        <div className="mb-16 md:mb-20">
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
             Projects by Laksh
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-            Projects by Laksh is a legally registered partnership operating in India with full GST and PAN compliance.
+            A legally registered partnership based in Hyderabad, India.
           </p>
-        </header>
+          <div className="mt-6 font-mono text-sm text-[var(--text-muted)]">
+            <p>GSTIN: 36ABHFP2956L1ZP</p>
+          </div>
+        </div>
 
-        {/* Registered Address */}
+        {/* Products */}
         <section className="mb-16 md:mb-20">
           <h2 className="text-2xl md:text-3xl font-semibold mb-8">
-            Registered Address
+            Products
           </h2>
-          <address className="not-italic text-[var(--text-secondary)] leading-relaxed">
-            Plot 149, Road No. 6<br />
-            Krushi Nagar Colony<br />
-            Bandlaguda, Nagole<br />
-            Hyderabad – 500068<br />
-            Telangana, India
-          </address>
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">Circuit Heroes</h3>
+              <p className="text-[var(--text-secondary)] leading-relaxed mb-3">
+                Hardware card games, workshops, and ebooks that make electronics fun and accessible.
+              </p>
+              <ul className="text-[var(--text-secondary)] leading-relaxed space-y-1 text-sm">
+                <li>• India's youngest card game designer — showcased at TTOX Dec 2024</li>
+                <li>• Youngest IP holder for the Circuit Heroes card game</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">In Development</h3>
+              <ul className="text-[var(--text-secondary)] leading-relaxed space-y-2">
+                <li>Computer-vision based learning games</li>
+                <li>Autonomous skill bots</li>
+                <li>Hardware building partner bot</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Workshops */}
+        <section className="mb-16 md:mb-20">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-8">
+            Workshops Conducted
+          </h2>
+          <div className="space-y-3">
+            <a 
+              href="https://konfhub.com/krw" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+            >
+              Offline Robotics Workshop ↗
+            </a>
+            <a 
+              href="https://konfhub.com/robo" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+            >
+              Online Robotics Workshop ↗
+            </a>
+          </div>
         </section>
 
         {/* Operating Model */}
@@ -67,30 +110,41 @@ function Venture() {
           </div>
         </section>
 
-        {/* Leadership */}
+        {/* Team */}
         <section className="mb-16 md:mb-20">
           <h2 className="text-2xl md:text-3xl font-semibold mb-8">
-            Leadership
+            Team
           </h2>
           <div className="max-w-xl">
-            <LeaderCard 
-              name="Lakshveer Rao"
+            <TeamMember 
+              name="R Lakshveer Rao"
               role="Co-Founder & Lead Builder"
             />
-            <LeaderCard 
-              name="Capt. Venkat (Age 48)"
-              role="Co-Founder | First Investor | Operations, Logistics & Systems"
-              description="Capt. Venkat provides founder-level operational backing — handling logistics, vendor coordination, travel, documentation, compliance, partnerships, and execution support."
+            <TeamMember 
+              name="Capt. Venkat"
+              role="Full-time Investor, Co-Founder, Co-Worker, Dad"
+              description="Handles operations, logistics, vendor coordination, travel, documentation, compliance, partnerships, and execution support."
             />
+            <div className="py-6 border-b border-[var(--border-subtle)]">
+              <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
+                AI Teammates
+              </h3>
+              <p className="text-[var(--text-secondary)]">
+                Beyond the two human members, we work with AI teammates for development, research, and content.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Navigation back */}
-        <nav className="pt-8 border-t border-[var(--border-subtle)]">
-          <a href="/" className="link-internal">
-            Back to Home
-          </a>
-        </nav>
+        {/* Location */}
+        <section className="mb-16 md:mb-20">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4">
+            Location
+          </h2>
+          <p className="text-[var(--text-secondary)]">
+            Hyderabad, India
+          </p>
+        </section>
       </main>
     </div>
   );

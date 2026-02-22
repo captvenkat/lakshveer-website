@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { SEO } from "@/components/seo";
 import { ShareMenu } from "@/components/share-menu";
+import { Header } from "@/components/header";
 
 interface Endorsement {
   slug: string;
@@ -59,13 +60,8 @@ const generateOGDescription = (endorsement: Endorsement): string => {
 // Not found component
 const NotFound = () => (
   <div className="min-h-screen">
-    <main className="container-main py-16 md:py-24">
-      <Link
-        href="/recognition"
-        className="inline-block mb-8 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-opacity duration-150"
-      >
-        ← Back to Recognition
-      </Link>
+    <Header />
+    <main className="container-main py-8 md:py-16">
       <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-6">
         Endorsement not found
       </h1>
@@ -76,7 +72,7 @@ const NotFound = () => (
         href="/recognition"
         className="text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
       >
-        View all recognition →
+        View all voices →
       </Link>
     </main>
   </div>
@@ -122,7 +118,8 @@ function RecognitionDetail() {
   if (endorsement === undefined) {
     return (
       <div className="min-h-screen">
-        <main className="container-main py-16 md:py-24">
+        <Header />
+        <main className="container-main py-8 md:py-16">
           <div className="text-[var(--text-muted)]">Loading...</div>
         </main>
       </div>
@@ -140,20 +137,13 @@ function RecognitionDetail() {
   return (
     <div className="min-h-screen">
       <SEO 
-        title="Recognition | Lakshveer Rao"
+        title="Voices | Lakshveer Rao"
         description={ogDescription}
         ogImage={ogImageUrl}
       />
+      <Header />
       
-      <main className="container-main py-16 md:py-24">
-        {/* Back link */}
-        <Link
-          href="/recognition"
-          className="inline-block mb-12 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-opacity duration-150"
-        >
-          ← Back to Recognition
-        </Link>
-
+      <main className="container-main py-8 md:py-16">
         {/* Quote - displayed prominently without quotation marks */}
         <blockquote className="mb-12">
           <p className="text-2xl md:text-3xl lg:text-4xl text-[var(--text-primary)] leading-relaxed font-normal tracking-tight">
@@ -189,28 +179,6 @@ function RecognitionDetail() {
           <ShareMenu slug={endorsement.slug} quote={endorsement.quote} />
         </div>
       </main>
-
-      {/* Minimal Footer */}
-      <footer className="container-main pb-16">
-        <div className="border-t border-[var(--border-subtle)] pt-12">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-[var(--text-primary)] font-medium">
-                Lakshveer Rao (Age 8)
-              </p>
-              <p className="text-[var(--text-muted)] text-sm">
-                Hardware + AI Systems Builder
-              </p>
-            </div>
-            <Link
-              href="/"
-              className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-            >
-              ← Home
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

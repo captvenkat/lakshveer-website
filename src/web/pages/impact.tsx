@@ -1,5 +1,5 @@
-import { Link } from "wouter";
 import { SEO, PAGE_TITLES } from "@/components/seo";
+import { Header } from "@/components/header";
 
 interface ImpactEntry {
   title: string;
@@ -23,50 +23,70 @@ const ExternalLink = ({ href, children }: { href: string; children: React.ReactN
   </a>
 );
 
-// Impact Data - EXACT content from task 17
+// Impact Data with real links
 const impactCategories: ImpactCategory[] = [
   {
-    name: "Competition Wins & Recognition",
+    name: "Hackathons",
     entries: [
+      {
+        title: "Top-5 Finalist (Youngest Participant)",
+        organization: "Hardware Hackathon 2.0 — LionCircuits × PCB Cupid",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=bparB1aC_Wk" },
+      },
+      {
+        title: "Participated (Youngest)",
+        organization: "Hardware Hackathon 1.0 — LionCircuits × PCB Cupid",
+        link: { label: "View", href: "https://x.com/LionCircuits/status/1950132910667026934" },
+      },
+      {
+        title: "Finalist (Youngest)",
+        organization: "VibeHack — Emergent",
+        link: { label: "View", href: "https://x.com/CaptVenk/status/2000206808917623033" },
+      },
       {
         title: "Special Mention Winner",
-        organization: "Vedanta × Param Foundation Makeathon",
-        link: { label: "View", href: "#" },
+        organization: "RunTogether Hackathon — Runable",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=kGENI_zK7kk" },
       },
       {
-        title: "Top-5 Finalist",
-        organization: "Hardware Hackathon 2.0",
-        link: { label: "View", href: "#" },
+        title: "Youngest Innovator & Special Mention Winner",
+        organization: "Makeathon — Param Foundation × Vedanta",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=ORPQW1_M-v8" },
       },
       {
-        title: "Youngest Finalist",
-        organization: "VibeHack by Emergent",
-        link: { label: "View", href: "#" },
-      },
-      {
-        title: "Youngest Participant",
-        organization: "Yugantar Tech Fest",
-        link: { label: "View", href: "#" },
+        title: "Participated",
+        organization: "Gemini 3 Hackathon — Cerebral Valley × Google DeepMind",
+        link: { label: "Demo", href: "https://www.youtube.com/watch?v=AgvJWdYLMUI" },
       },
     ],
   },
   {
-    name: "Hackathons & Live Builds",
+    name: "Pitches",
     entries: [
       {
-        title: "RunTogether Hackathon",
-        organization: "shipped live project",
-        link: { label: "View", href: "#" },
+        title: "Pitched Circuit Heroes",
+        organization: "South Park Commons",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=Oxw5T8ZU1RI" },
       },
-    ],
-  },
-  {
-    name: "Invitations & Speaking",
-    entries: [
       {
-        title: "Special Invite",
-        organization: "Robotics & Hardware Founders Meet",
-        link: { label: "View", href: "#" },
+        title: "Pitched",
+        organization: "AI Collective Hyderabad",
+        link: { label: "View", href: "https://x.com/CaptVenk/status/1984589350450188397" },
+      },
+      {
+        title: "Pitched at VibeHack",
+        organization: "Emergent",
+        link: { label: "View", href: "https://x.com/CaptVenk/status/2000205469705797695" },
+      },
+      {
+        title: "Pitched at RunTogether",
+        organization: "Runable",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=kGENI_zK7kk" },
+      },
+      {
+        title: "Introduced at T-Hub",
+        organization: "T-Hub Hyderabad",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=u6IeZwbG8uc" },
       },
     ],
   },
@@ -74,24 +94,34 @@ const impactCategories: ImpactCategory[] = [
     name: "Accelerators & Programs",
     entries: [
       {
-        title: "Selected",
-        organization: "Delta-2 Cohort, The Residency (USA)",
-        link: { label: "View", href: "#" },
+        title: "Selected (Youngest Founder)",
+        organization: "Delta-2 Cohort — The Residency (USA)",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=PoFN1Mf0rOo" },
       },
     ],
   },
   {
-    name: "Pitches & Investor Exposure",
+    name: "Competition Wins & Recognition",
     entries: [
       {
-        title: "Pitched",
-        organization: "South Park Commons",
-        link: { label: "View", href: "#" },
+        title: "Youngest Participant & Special Winner",
+        organization: "Yugantar Tech Fest — Scaler School of Technology, Bengaluru",
+        link: { label: "View", href: "https://x.com/CaptVenk/status/1994709956906684543" },
       },
       {
-        title: "Pitched",
-        organization: "AI Collective Hyderabad",
-        link: { label: "View", href: "#" },
+        title: "Special Invite",
+        organization: "Robotics & Hardware Founders Meet",
+        link: { label: "View", href: "https://x.com/LionCircuits/status/1950132910667026934" },
+      },
+      {
+        title: "Panel Speaker",
+        organization: "August Fest 2025",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=ZDq-IEbFCXc" },
+      },
+      {
+        title: "Demo to Former ISRO Chief",
+        organization: "Shri Somanath ji",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=x9SHIKOnHvY" },
       },
     ],
   },
@@ -101,7 +131,7 @@ const impactCategories: ImpactCategory[] = [
       {
         title: "Co-creation Agreement",
         organization: "Lion Circuits",
-        link: { label: "View", href: "#" },
+        link: { label: "View", href: "https://x.com/LionCircuits/status/1950132910667026934" },
       },
     ],
   },
@@ -111,12 +141,10 @@ const impactCategories: ImpactCategory[] = [
       {
         title: "Shortlisted",
         organization: "Shark Tank India S5 (Level 2)",
-        link: { label: "View", href: "#" },
       },
       {
         title: "Shortlisted",
         organization: "ISF Junicorns (Level 3)",
-        link: { label: "View", href: "#" },
       },
     ],
   },
@@ -126,16 +154,16 @@ const impactCategories: ImpactCategory[] = [
       {
         title: "₹1,00,000 Grant",
         organization: "Malpani Ventures",
-        link: { label: "View", href: "#" },
+        link: { label: "View", href: "https://malpaniventures.com" },
       },
       {
         title: "Grants",
         organization: "AI Grants India",
-        link: { label: "View", href: "#" },
+        link: { label: "View", href: "https://aigrants.in" },
       },
       {
         title: "₹40,000 Creator Micro-Scholarship",
-        link: { label: "View", href: "#" },
+        link: { label: "View", href: "https://x.com/ramsri_goutham/status/1931942764004192611" },
       },
     ],
   },
@@ -143,9 +171,24 @@ const impactCategories: ImpactCategory[] = [
     name: "Media",
     entries: [
       {
+        title: "Feature Story",
+        organization: "Beats in Brief",
+        link: { label: "Read", href: "https://beatsinbrief.com/2026/01/11/lakshveer-rao-8-year-old-hardware-startup-founder-india/" },
+      },
+      {
         title: "Covered twice",
         organization: "Runtime Magazine",
-        link: { label: "Read", href: "#" },
+        link: { label: "Watch", href: "https://www.instagram.com/reel/DQJ34sdjxA0/" },
+      },
+      {
+        title: "Feature",
+        organization: "ThinkTac",
+        link: { label: "Watch", href: "https://www.youtube.com/watch?v=8qmvDz-TJTE" },
+      },
+      {
+        title: "Coverage",
+        organization: "Maverick News",
+        link: { label: "Read", href: "https://mavericknews30.com/?p=103498" },
       },
     ],
   },
@@ -155,22 +198,17 @@ function Impact() {
   return (
     <div className="min-h-screen">
       <SEO title={PAGE_TITLES.impact} />
-      <main className="container-main py-16 md:py-24">
-        {/* Header */}
-        <header className="mb-16 md:mb-20">
-          <Link
-            href="/"
-            className="inline-block mb-8 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-opacity duration-150"
-          >
-            ← Back
-          </Link>
+      <Header />
+      <main className="container-main py-8 md:py-16">
+        {/* Page Title */}
+        <div className="mb-16 md:mb-20">
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
             Impact
           </h1>
           <p className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl leading-relaxed">
             Real-world outcomes across grants, awards, panels, workshops, product sales, and media coverage.
           </p>
-        </header>
+        </div>
 
         {/* Impact Categories */}
         <div className="space-y-12 md:space-y-16">
@@ -217,23 +255,6 @@ function Impact() {
           ))}
         </div>
       </main>
-
-      {/* Minimal Footer */}
-      <footer className="container-main pb-16">
-        <div className="border-t border-[var(--border-subtle)] pt-12">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <p className="text-[var(--text-secondary)] text-sm">
-              Lakshveer Rao — Projects by Laksh
-            </p>
-            <Link
-              href="/"
-              className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-            >
-              ← Home
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
