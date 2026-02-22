@@ -1,5 +1,7 @@
 import { SEO, PAGE_TITLES } from "@/components/seo";
 import { ShareMenu } from "@/components/share-menu";
+import { AnimatedCounter, parseStatValue } from "@/components/animated-counter";
+import { LatestYouTube, CurrentlyBuilding } from "@/components/dynamic-hero";
 
 interface LinkProps {
   href: string;
@@ -302,19 +304,48 @@ function Index() {
           </div>
         </header>
 
-        {/* ========== MOMENTUM STRIP ========== */}
+        {/* ========== MOMENTUM STRIP (ANIMATED COUNTERS) ========== */}
         <section className="mb-24 md:mb-32">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 md:gap-8">
-            {stats.map((stat: { label: string; value: string; highlight?: boolean }) => (
-              <div key={stat.label} className="text-center md:text-left">
-                <div className={`font-mono text-3xl md:text-4xl mb-1 ${stat.highlight ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}`}>
-                  {stat.value}
+            {stats.map((stat: { label: string; value: string; highlight?: boolean }) => {
+              const parsed = parseStatValue(stat.value);
+              const canAnimate = parsed.numeric > 0;
+              
+              return (
+                <div key={stat.label} className="text-center md:text-left">
+                  <div className={`font-mono text-3xl md:text-4xl mb-1 ${stat.highlight ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}`}>
+                    {canAnimate ? (
+                      <AnimatedCounter
+                        endValue={parsed.numeric}
+                        prefix={parsed.prefix}
+                        suffix={parsed.suffix}
+                        duration={2000}
+                      />
+                    ) : (
+                      stat.value
+                    )}
+                  </div>
+                  <div className={`text-sm ${stat.highlight ? 'text-[var(--text-secondary)] font-medium' : 'text-[var(--text-muted)]'}`}>
+                    {stat.label}
+                  </div>
                 </div>
-                <div className={`text-sm ${stat.highlight ? 'text-[var(--text-secondary)] font-medium' : 'text-[var(--text-muted)]'}`}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ========== LIVE UPDATES (YouTube + Currently Building) ========== */}
+        <section className="mb-24 md:mb-32">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Currently Building Status */}
+            <div>
+              <CurrentlyBuilding />
+            </div>
+            {/* Latest YouTube Video */}
+            <div>
+              <h3 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider mb-4">Latest Video</h3>
+              <LatestYouTube />
+            </div>
           </div>
         </section>
 

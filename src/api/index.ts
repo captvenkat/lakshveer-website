@@ -19,6 +19,165 @@ app.use(cors({ origin: "*" }));
 
 app.get('/ping', (c) => c.json({ message: `Pong! ${Date.now()}` }));
 
+// ========== DYNAMIC CONTENT ENDPOINTS ==========
+
+// YouTube Latest Video - Fetch from @ProjectsByLaksh
+// Uses YouTube RSS feed (no API key needed)
+app.get('/youtube/latest', async (c) => {
+  try {
+    const CHANNEL_ID = 'UClc6l6w2GcUP27kZGQEA-kw'; // @ProjectsByLaksh channel ID (Projects by Laksh)
+    const RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+    
+    const response = await fetch(RSS_URL, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch YouTube feed');
+    }
+    
+    const xml = await response.text();
+    
+    // Parse the RSS feed - extract first entry
+    const videoIdMatch = xml.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+    const titleMatch = xml.match(/<media:title>([^<]+)<\/media:title>/);
+    const publishedMatch = xml.match(/<published>([^<]+)<\/published>/);
+    
+    if (!videoIdMatch || !titleMatch) {
+      throw new Error('Could not parse YouTube feed');
+    }
+    
+    const videoId = videoIdMatch[1];
+    const title = titleMatch[1];
+    const publishedAt = publishedMatch ? publishedMatch[1] : new Date().toISOString();
+    
+    // Use highest quality thumbnail available
+    const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    
+    return c.json({
+      success: true,
+      video: {
+        videoId,
+        title,
+        thumbnail,
+        publishedAt,
+        url: `https://youtube.com/watch?v=${videoId}`,
+      }
+    });
+  } catch (error) {
+    console.error('YouTube fetch error:', error);
+    return c.json({ success: false, error: 'Failed to fetch YouTube data' }, 500);
+  }
+});
+
+// Currently Building Status - Fetch from @CaptVenk tweets
+// Uses nitter instance for scraping (no API key needed)
+app.get('/building/status', async (c) => {
+  try {
+    // Try multiple nitter instances as fallback
+    const nitterInstances = [
+      'https://nitter.net',
+      'https://nitter.privacydev.net',
+      'https://nitter.poast.org',
+    ];
+    
+    let tweetText = '';
+    let tweetDate = '';
+    let tweetUrl = 'https://x.com/CaptVenk';
+    
+    // Keywords to identify "building" related tweets
+    const buildingKeywords = ['building', 'working on', 'shipping', 'making', 'creating', 'developing', 'laksh', 'project', 'prototype', 'testing', 'assembling', 'designing', 'coding'];
+    
+    for (const nitterBase of nitterInstances) {
+      try {
+        const response = await fetch(`${nitterBase}/CaptVenk`, {
+          headers: { 
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html',
+          }
+        });
+        
+        if (!response.ok) continue;
+        
+        const html = await response.text();
+        
+        // Extract tweets from nitter HTML
+        // Look for tweet-content divs
+        const tweetMatches = html.match(/<div class="tweet-content[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
+        
+        if (tweetMatches && tweetMatches.length > 0) {
+          // Find first tweet mentioning building-related activity
+          for (const match of tweetMatches) {
+            const textContent = match.replace(/<[^>]+>/g, '').trim();
+            const lowerText = textContent.toLowerCase();
+            
+            const isBuilding = buildingKeywords.some(keyword => lowerText.includes(keyword));
+            
+            if (isBuilding && textContent.length > 20 && textContent.length < 300) {
+              tweetText = textContent;
+              
+              // Extract date if available
+              const dateMatch = html.match(/<span class="tweet-date"[^>]*><a[^>]*title="([^"]+)"/);
+              if (dateMatch) {
+                const date = new Date(dateMatch[1]);
+                tweetDate = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+              } else {
+                tweetDate = 'Recent';
+              }
+              
+              // Extract tweet link
+              const linkMatch = html.match(/href="(\/CaptVenk\/status\/\d+)"/);
+              if (linkMatch) {
+                tweetUrl = `https://x.com${linkMatch[1].replace('/CaptVenk', '/CaptVenk')}`;
+              }
+              
+              break;
+            }
+          }
+        }
+        
+        if (tweetText) break; // Found what we need
+        
+      } catch (e) {
+        continue; // Try next instance
+      }
+    }
+    
+    // Fallback if no tweet found
+    if (!tweetText) {
+      // Return a static fallback based on known projects
+      return c.json({
+        success: true,
+        status: {
+          text: "Iterating on Hardvare platform with Laksh — building safer hardware execution systems",
+          date: "Ongoing",
+          tweetUrl: "https://x.com/CaptVenk",
+        }
+      });
+    }
+    
+    return c.json({
+      success: true,
+      status: {
+        text: tweetText,
+        date: tweetDate,
+        tweetUrl,
+      }
+    });
+  } catch (error) {
+    console.error('Twitter fetch error:', error);
+    // Return fallback on error
+    return c.json({
+      success: true,
+      status: {
+        text: "Iterating on Hardvare platform with Laksh — building safer hardware execution systems",
+        date: "Ongoing",
+        tweetUrl: "https://x.com/CaptVenk",
+      }
+    });
+  }
+});
+
 // Portfolio data - single source of truth for PDF generation
 const portfolioData = {
   name: "R Lakshveer Rao",
