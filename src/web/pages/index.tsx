@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { SEO, PAGE_TITLES } from "@/components/seo";
 import { ShareMenu } from "@/components/share-menu";
 import { AnimatedCounter, parseStatValue } from "@/components/animated-counter";
@@ -262,7 +263,28 @@ const featuredEndorsements: FeaturedEndorsement[] = [
   },
 ];
 
+// Twitter intent URL for public endorsements
+const ENDORSE_TWITTER_URL = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("I support @LakshveerRao's builder journey. \n\nlakshveer.com");
+
 function Index() {
+  const [supporterQuotes, setSupporterQuotes] = useState<Record<string, string>>({});
+  
+  useEffect(() => {
+    // Fetch supporter quotes from API
+    fetch("/api/supporters/quotes")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.quotes) {
+          const quotesMap: Record<string, string> = {};
+          data.quotes.forEach((q: { handle: string; quote: string }) => {
+            quotesMap[q.handle] = q.quote;
+          });
+          setSupporterQuotes(quotesMap);
+        }
+      })
+      .catch(() => {}); // Silent fail
+  }, []);
+  
   return (
     <div className="min-h-screen">
       <SEO title={PAGE_TITLES.home} />
@@ -464,34 +486,56 @@ function Index() {
           </div>
         </section>
 
-        {/* ========== GUIDED BY ========== */}
+        {/* ========== SUPPORT ECOSYSTEM ========== */}
         <section className="mb-24 md:mb-32">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-4">
-            Support Ecosystem
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <h2 className="text-2xl md:text-3xl font-semibold">
+              Support Ecosystem
+            </h2>
+            <a
+              href={ENDORSE_TWITTER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors rounded-lg"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Endorse Laksh
+            </a>
+          </div>
           <p className="text-[var(--text-secondary)] mb-10 max-w-2xl">
             Founders, engineers, and builders who've shared their time, expertise, and encouragement.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {mentors.map((mentor) => (
-              <a
-                key={mentor.handle}
-                href={mentor.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group p-4 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--text-muted)] transition-[border-color] duration-200"
-              >
-                <p className="font-medium text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent)] transition-colors duration-150">
-                  {mentor.name} ↗
-                </p>
-                <p className="text-xs text-[var(--text-muted)] mb-2 font-mono">
-                  {mentor.handle}
-                </p>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  {mentor.guidance}
-                </p>
-              </a>
-            ))}
+            {mentors.map((mentor) => {
+              const quote = supporterQuotes[mentor.handle];
+              return (
+                <a
+                  key={mentor.handle}
+                  href={mentor.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group p-4 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--text-muted)] transition-[border-color] duration-200"
+                >
+                  <p className="font-medium text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent)] transition-colors duration-150">
+                    {mentor.name} ↗
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] mb-2 font-mono">
+                    {mentor.handle}
+                  </p>
+                  {quote ? (
+                    <p className="text-sm text-[var(--text-secondary)] italic">
+                      "{quote}"
+                    </p>
+                  ) : (
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      {mentor.guidance}
+                    </p>
+                  )}
+                </a>
+              );
+            })}
           </div>
         </section>
 

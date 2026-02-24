@@ -546,4 +546,103 @@ app.get('/stats', async (c) => {
   }
 });
 
+// ========== SUPPORTER ENDORSEMENT SYSTEM ==========
+
+// Get supporter info by token (for the endorsement page)
+app.get('/endorse/:token', async (c) => {
+  try {
+    const token = c.req.param('token');
+    
+    const supporter = await c.env.DB.prepare(
+      `SELECT handle, name, quote, submitted_at FROM supporters WHERE token = ?`
+    ).bind(token).first<{ handle: string; name: string; quote: string | null; submitted_at: string | null }>();
+    
+    if (!supporter) {
+      return c.json({ success: false, error: 'Invalid token' }, 404);
+    }
+    
+    return c.json({
+      success: true,
+      supporter: {
+        handle: supporter.handle,
+        name: supporter.name,
+        hasQuote: !!supporter.quote,
+        quote: supporter.quote,
+      }
+    });
+  } catch (error) {
+    console.error('Endorse fetch error:', error);
+    return c.json({ success: false, error: 'Failed to fetch supporter' }, 500);
+  }
+});
+
+// Submit endorsement quote
+app.post('/endorse/:token', async (c) => {
+  try {
+    const token = c.req.param('token');
+    const body = await c.req.json<{ quote: string }>();
+    
+    if (!body.quote || body.quote.trim().length === 0) {
+      return c.json({ success: false, error: 'Quote is required' }, 400);
+    }
+    
+    if (body.quote.length > 200) {
+      return c.json({ success: false, error: 'Quote must be 200 characters or less' }, 400);
+    }
+    
+    // Verify token exists
+    const supporter = await c.env.DB.prepare(
+      `SELECT id FROM supporters WHERE token = ?`
+    ).bind(token).first<{ id: number }>();
+    
+    if (!supporter) {
+      return c.json({ success: false, error: 'Invalid token' }, 404);
+    }
+    
+    // Update quote
+    await c.env.DB.prepare(
+      `UPDATE supporters SET quote = ?, submitted_at = datetime('now') WHERE token = ?`
+    ).bind(body.quote.trim(), token).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Endorse submit error:', error);
+    return c.json({ success: false, error: 'Failed to save quote' }, 500);
+  }
+});
+
+// Get all supporter quotes (for displaying on homepage)
+app.get('/supporters/quotes', async (c) => {
+  try {
+    const results = await c.env.DB.prepare(
+      `SELECT handle, name, quote FROM supporters WHERE quote IS NOT NULL ORDER BY submitted_at DESC`
+    ).all<{ handle: string; name: string; quote: string }>();
+    
+    return c.json({
+      success: true,
+      quotes: results.results || []
+    });
+  } catch (error) {
+    console.error('Quotes fetch error:', error);
+    return c.json({ success: false, error: 'Failed to fetch quotes' }, 500);
+  }
+});
+
+// Admin: Get all supporters with tokens (for sending out links)
+app.get('/supporters/admin', async (c) => {
+  try {
+    const results = await c.env.DB.prepare(
+      `SELECT handle, name, token, quote, submitted_at FROM supporters ORDER BY name`
+    ).all();
+    
+    return c.json({
+      success: true,
+      supporters: results.results || []
+    });
+  } catch (error) {
+    console.error('Admin fetch error:', error);
+    return c.json({ success: false, error: 'Failed to fetch supporters' }, 500);
+  }
+});
+
 export default app;

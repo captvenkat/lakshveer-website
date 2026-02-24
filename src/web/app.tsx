@@ -11,6 +11,7 @@ import Journey from "./pages/journey";
 import Share from "./pages/share";
 import Invite from "./pages/invite";
 import Press from "./pages/press";
+import Endorse from "./pages/endorse";
 import { Provider } from "./components/provider";
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
                                 <Route path="/share" component={Share} />
                                 <Route path="/invite" component={Invite} />
                                 <Route path="/press" component={Press} />
+                                <Route path="/endorse/:token" component={Endorse} />
                         </Switch>
                 </Provider>
         );
