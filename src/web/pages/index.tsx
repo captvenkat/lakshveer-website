@@ -82,7 +82,7 @@ const backers = [
   { name: "AI Grants India", href: "https://aigrants.in" },
 ];
 
-// Mentors / Guided By - People who have helped guide Laksh's journey
+// Support Ecosystem - People who have helped guide Laksh's journey
 interface Mentor {
   name: string;
   handle: string;
@@ -133,6 +133,9 @@ const mentors: Mentor[] = [
   { name: "Khushi", handle: "@khushhhi_", guidance: "Young founder & India optimism", href: "https://x.com/khushhhi_" },
   { name: "Ramsri Goutham", handle: "@ramsri_goutham", guidance: "AI SaaS & data science", href: "https://x.com/ramsri_goutham" },
   { name: "Harshal Modi", handle: "@grondmaster", guidance: "Board games & culture", href: "https://x.com/grondmaster" },
+  { name: "Inavamsi B Enaganti", handle: "@inav65", guidance: "Science & innovation at Param", href: "https://x.com/inav65" },
+  { name: "CPK", handle: "@heyaCPK", guidance: "Kids wellness & food writing", href: "https://x.com/heyaCPK" },
+  { name: "Murali Duggineni", handle: "@NarrativeNest", guidance: "Etymology & storytelling", href: "https://x.com/NarrativeNest" },
 ];
 
 // As Featured In - Media coverage
@@ -464,7 +467,7 @@ function Index() {
         {/* ========== GUIDED BY ========== */}
         <section className="mb-24 md:mb-32">
           <h2 className="text-2xl md:text-3xl font-semibold mb-4">
-            Guided By
+            Support Ecosystem
           </h2>
           <p className="text-[var(--text-secondary)] mb-10 max-w-2xl">
             Founders, engineers, and builders who've shared their time, expertise, and encouragement.
