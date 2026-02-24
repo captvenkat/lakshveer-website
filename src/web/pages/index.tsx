@@ -137,6 +137,7 @@ const mentors: Mentor[] = [
 
 // As Featured In - Media coverage
 const featuredIn = [
+  { name: "Adil Mania", href: "https://x.com/adilmania/status/1998158073027043345" },
   { name: "Beats in Brief", href: "https://beatsinbrief.com/2026/01/11/lakshveer-rao-8-year-old-hardware-startup-founder-india/" },
   { name: "Runtime", href: "https://www.instagram.com/reel/DQJ34sdjxA0/" },
   { name: "Lion Circuits", href: "https://x.com/LionCircuits/status/1950132910667026934" },
