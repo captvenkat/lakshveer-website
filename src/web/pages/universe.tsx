@@ -61,6 +61,27 @@ const nodeTypeLabels: Record<NodeType, string> = {
   concept: 'Concepts',
 };
 
+// Helper to convert any color to rgba
+const toRgba = (color: string, alpha: number): string => {
+  // If already rgba, just replace alpha
+  if (color.startsWith('rgba')) {
+    return color.replace(/[\d.]+\)$/, `${alpha})`);
+  }
+  // If rgb, convert to rgba
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb(', 'rgba(').replace(')', `,${alpha})`);
+  }
+  // If hex, convert to rgba
+  if (color.startsWith('#')) {
+    const hex = color.slice(1);
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+  return color;
+};
+
 function Universe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -322,8 +343,8 @@ function Universe() {
           node.x, node.y, size + glowSize
         );
         const color = nodeColors[node.type];
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(0.5, color.replace(')', ',0.3)').replace('rgb', 'rgba'));
+        gradient.addColorStop(0, toRgba(color, 1));
+        gradient.addColorStop(0.5, toRgba(color, 0.3));
         gradient.addColorStop(1, 'transparent');
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -344,10 +365,7 @@ function Universe() {
         ctx.fill();
       } else {
         const color = nodeColors[node.type];
-        ctx.fillStyle = alpha < 1 ? 
-          color.replace(')', `,${alpha})`).replace('rgb', 'rgba').replace('#', 'rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i, (_, r, g, b) => 
-            `${parseInt(r, 16)},${parseInt(g, 16)},${parseInt(b, 16)},${alpha})`) 
-          : color;
+        ctx.fillStyle = toRgba(color, alpha);
         ctx.fill();
       }
       
