@@ -685,29 +685,47 @@ function Index() {
             {mentors.map((mentor) => {
               const quote = supporterQuotes[mentor.handle];
               return (
-                <a
+                <div
                   key={mentor.handle}
-                  href={mentor.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="group p-4 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--text-muted)] transition-[border-color] duration-200"
                 >
-                  <p className="font-medium text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent)] transition-colors duration-150">
-                    {mentor.name} ↗
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-mono">
-                    {mentor.handle}
-                  </p>
-                  {quote ? (
-                    <p className="text-sm text-[var(--text-secondary)] italic">
-                      "{quote}"
+                  <a
+                    href={mentor.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <p className="font-medium text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent)] transition-colors duration-150">
+                      {mentor.name} ↗
                     </p>
+                    <p className="text-xs text-[var(--text-muted)] mb-2 font-mono">
+                      {mentor.handle}
+                    </p>
+                  </a>
+                  {quote ? (
+                    <div>
+                      <p className="text-sm text-[var(--text-secondary)] italic mb-2">
+                        "{quote}"
+                      </p>
+                      <EndorsementShareButton
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShareModalData({
+                            isOpen: true,
+                            quote: quote,
+                            name: mentor.name,
+                            handle: mentor.handle,
+                          });
+                        }}
+                      />
+                    </div>
                   ) : (
                     <p className="text-sm text-[var(--text-secondary)]">
                       {mentor.guidance}
                     </p>
                   )}
-                </a>
+                </div>
               );
             })}
           </div>
@@ -739,7 +757,7 @@ function Index() {
                   <p className="text-[var(--text-secondary)] italic mb-4">
                     "{endorsement.quote}"
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">
                         {endorsement.name}
@@ -752,6 +770,18 @@ function Index() {
                         </p>
                       )}
                     </div>
+                    <EndorsementShareButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShareModalData({
+                          isOpen: true,
+                          quote: endorsement.quote,
+                          name: endorsement.name,
+                          handle: endorsement.handle,
+                        });
+                      }}
+                    />
                   </div>
                 </div>
               ))}
