@@ -524,10 +524,10 @@ export const nodes: UniverseNode[] = [
     id: 'south-park-commons',
     label: 'South Park Commons',
     type: 'event',
-    description: 'Pitched at SPC in San Francisco.',
+    description: 'Pitched at SPC Bengaluru.',
     year: 2025,
     weight: 50,
-    meta: { location: 'San Francisco' }
+    meta: { location: 'Bengaluru' }
   },
   {
     id: 'august-fest',

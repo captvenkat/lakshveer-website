@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { SEO } from "@/components/seo";
+import { useLocation } from "wouter";
 import { 
   nodes as allNodes, 
   edges as allEdges, 
@@ -9,9 +10,32 @@ import {
   getConnectedNodes,
   getUniverseStats
 } from "@/data/universe-data";
+import {
+  capabilityClusters,
+  growthArcs,
+  crossPollinations,
+  futurePaths,
+  intelligenceEdges,
+  timelineEvents,
+  calculateMomentum,
+  generateInsights,
+  getNodesAtDate,
+  getClusterForNode,
+  getGrowthArcsForNode,
+  getCrossPollinationsForNode,
+  getFuturePathsForNode,
+  getAllEdges,
+  type CapabilityCluster,
+  type GrowthArc,
+  type CrossPollination,
+  type FuturePath,
+  type Insight,
+  type MomentumMetrics,
+  type EnhancedEdge,
+} from "@/data/universe-intelligence";
 
 // ============================================
-// FORCE SIMULATION - Pure canvas, no library
+// TYPES
 // ============================================
 
 interface SimNode extends UniverseNode {
@@ -21,6 +45,7 @@ interface SimNode extends UniverseNode {
   vy: number;
   fx?: number | null;
   fy?: number | null;
+  visible?: boolean;
 }
 
 interface SimEdge {
@@ -28,22 +53,38 @@ interface SimEdge {
   target: SimNode;
   relation: string;
   weight?: number;
+  evolutionType?: string;
 }
 
-// Colors for each node type
+type ViewMode = 'explore' | 'clusters' | 'timeline' | 'momentum';
+
+// ============================================
+// COLORS & STYLES
+// ============================================
+
 const nodeColors: Record<NodeType, string> = {
-  core: '#22d3ee',      // Cyan - Lakshveer
-  product: '#3b82f6',   // Blue
-  project: '#10b981',   // Emerald
-  skill: '#8b5cf6',     // Purple
-  tool: '#f59e0b',      // Amber
-  person: '#ec4899',    // Pink
-  company: '#f97316',   // Orange
-  event: '#06b6d4',     // Cyan-ish
-  media: '#ef4444',     // Red
-  achievement: '#fbbf24', // Yellow
-  possibility: 'rgba(255,255,255,0.4)', // Ghost white
-  concept: '#64748b',   // Slate
+  core: '#22d3ee',
+  product: '#3b82f6',
+  project: '#10b981',
+  skill: '#8b5cf6',
+  tool: '#f59e0b',
+  person: '#ec4899',
+  company: '#f97316',
+  event: '#06b6d4',
+  media: '#ef4444',
+  achievement: '#fbbf24',
+  possibility: 'rgba(255,255,255,0.4)',
+  concept: '#64748b',
+};
+
+const edgeColors: Record<string, string> = {
+  EVOLVED_INTO: '#22d3ee',
+  CROSS_POLLINATED_WITH: '#a855f7',
+  CAPABILITY_EXPANSION: '#10b981',
+  FUTURE_PATH: '#fbbf24',
+  UNLOCKED: '#3b82f6',
+  COMPOUNDS_WITH: '#ec4899',
+  LED_TO: '#f97316',
 };
 
 const nodeTypeLabels: Record<NodeType, string> = {
@@ -57,21 +98,17 @@ const nodeTypeLabels: Record<NodeType, string> = {
   event: 'Events',
   media: 'Media',
   achievement: 'Achievements',
-  possibility: 'Possibilities',
+  possibility: 'Future Possibilities',
   concept: 'Concepts',
 };
 
-// Helper to convert any color to rgba
 const toRgba = (color: string, alpha: number): string => {
-  // If already rgba, just replace alpha
   if (color.startsWith('rgba')) {
     return color.replace(/[\d.]+\)$/, `${alpha})`);
   }
-  // If rgb, convert to rgba
   if (color.startsWith('rgb(')) {
     return color.replace('rgb(', 'rgba(').replace(')', `,${alpha})`);
   }
-  // If hex, convert to rgba
   if (color.startsWith('#')) {
     const hex = color.slice(1);
     const r = parseInt(hex.slice(0, 2), 16);
@@ -82,12 +119,17 @@ const toRgba = (color: string, alpha: number): string => {
   return color;
 };
 
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 function Universe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
+  const [, setLocation] = useLocation();
   
-  // State
+  // Core state
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [selectedNode, setSelectedNode] = useState<SimNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<SimNode | null>(null);
@@ -101,10 +143,44 @@ function Universe() {
   const [isPanning, setIsPanning] = useState(false);
   const [lastMouse, setLastMouse] = useState({ x: 0, y: 0 });
   
+  // Intelligence state
+  const [viewMode, setViewMode] = useState<ViewMode>('explore');
+  const [activeCluster, setActiveCluster] = useState<string | null>(null);
+  const [timelineDate, setTimelineDate] = useState('2026-02');
+  const [showIntelligenceEdges, setShowIntelligenceEdges] = useState(true);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  
+  // Computed data
+  const momentum = useMemo(() => calculateMomentum(), []);
+  const insights = useMemo(() => generateInsights(), []);
+  const allEnhancedEdges = useMemo(() => getAllEdges(), []);
+  
+  // Parse URL for deep link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nodeId = params.get('node');
+    if (nodeId) {
+      const node = allNodes.find(n => n.id === nodeId);
+      if (node) {
+        setTimeout(() => {
+          const simNode = simNodes.find(n => n.id === nodeId);
+          if (simNode) {
+            setSelectedNode(simNode);
+            // Center on node
+            setPan({
+              x: dimensions.width / 2 - simNode.x * zoom,
+              y: dimensions.height / 2 - simNode.y * zoom,
+            });
+          }
+        }, 500);
+      }
+    }
+  }, []);
+  
   // Initialize nodes with positions
   const [simNodes, setSimNodes] = useState<SimNode[]>(() => {
     return allNodes.map((node, i) => {
-      // Position core at center, others in a spiral
       const angle = (i / allNodes.length) * Math.PI * 2 * 3;
       const radius = node.type === 'core' ? 0 : 100 + i * 2;
       return {
@@ -113,30 +189,54 @@ function Universe() {
         y: 300 + Math.sin(angle) * radius,
         vx: 0,
         vy: 0,
+        visible: true,
       };
     });
   });
   
   // Build edges with node references
   const simEdges = useMemo<SimEdge[]>(() => {
-    return allEdges.map(edge => ({
+    const edgeSource = showIntelligenceEdges ? allEnhancedEdges : allEdges;
+    return edgeSource.map(edge => ({
       source: simNodes.find(n => n.id === edge.source)!,
       target: simNodes.find(n => n.id === edge.target)!,
       relation: edge.relation,
       weight: edge.weight,
+      evolutionType: (edge as EnhancedEdge).evolutionType,
     })).filter(e => e.source && e.target);
-  }, [simNodes]);
+  }, [simNodes, showIntelligenceEdges, allEnhancedEdges]);
   
-  // Filter nodes based on active filters and search
+  // Get visible nodes based on timeline
+  const visibleNodeIds = useMemo(() => {
+    if (viewMode !== 'timeline') return new Set(allNodes.map(n => n.id));
+    return new Set(getNodesAtDate(timelineDate));
+  }, [viewMode, timelineDate]);
+  
+  // Filter nodes based on all criteria
   const filteredNodes = useMemo(() => {
     return simNodes.filter(node => {
-      // Filter by type
-      if (activeFilters.size > 0 && !activeFilters.has(node.type)) {
+      // Timeline filter
+      if (viewMode === 'timeline' && !visibleNodeIds.has(node.id)) {
         // Always show core
         if (node.type !== 'core') return false;
       }
-      // Filter possibilities
+      
+      // Cluster filter
+      if (activeCluster) {
+        const cluster = capabilityClusters.find(c => c.id === activeCluster);
+        if (cluster && !cluster.nodeIds.includes(node.id)) {
+          if (node.type !== 'core') return false;
+        }
+      }
+      
+      // Type filter
+      if (activeFilters.size > 0 && !activeFilters.has(node.type)) {
+        if (node.type !== 'core') return false;
+      }
+      
+      // Possibility filter
       if (!showPossibilities && node.type === 'possibility') return false;
+      
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -145,7 +245,7 @@ function Universe() {
       }
       return true;
     });
-  }, [simNodes, activeFilters, showPossibilities, searchQuery]);
+  }, [simNodes, activeFilters, showPossibilities, searchQuery, activeCluster, viewMode, visibleNodeIds]);
   
   // Filter edges based on visible nodes
   const filteredEdges = useMemo(() => {
@@ -155,7 +255,6 @@ function Universe() {
     );
   }, [simEdges, filteredNodes]);
   
-  // Stats
   const stats = useMemo(() => getUniverseStats(), []);
   
   // Handle resize
@@ -183,7 +282,6 @@ function Universe() {
         const centerX = dimensions.width / 2;
         const centerY = dimensions.height / 2;
         
-        // Apply forces
         nodes.forEach((node, i) => {
           if (node.fx != null) {
             node.x = node.fx;
@@ -194,15 +292,14 @@ function Universe() {
             node.vy = 0;
           }
           
-          // Skip fixed nodes
           if (node.fx != null || node.fy != null) return;
           
-          // Center gravity (stronger for core)
+          // Center gravity
           const gravityStrength = node.type === 'core' ? 0.05 : 0.002;
           node.vx += (centerX - node.x) * gravityStrength;
           node.vy += (centerY - node.y) * gravityStrength;
           
-          // Repulsion from other nodes
+          // Repulsion
           nodes.forEach((other, j) => {
             if (i === j) return;
             const dx = node.x - other.x;
@@ -239,7 +336,7 @@ function Universe() {
           }
         });
         
-        // Apply velocity with damping
+        // Apply velocity
         nodes.forEach(node => {
           if (node.fx != null || node.fy != null) return;
           node.vx *= 0.9;
@@ -247,7 +344,6 @@ function Universe() {
           node.x += node.vx;
           node.y += node.vy;
           
-          // Boundary constraints
           const padding = 50;
           node.x = Math.max(padding, Math.min(dimensions.width - padding, node.x));
           node.y = Math.max(padding, Math.min(dimensions.height - padding, node.y));
@@ -284,17 +380,17 @@ function Universe() {
     ctx.scale(zoom, zoom);
     ctx.translate(-dimensions.width / 2, -dimensions.height / 2);
     
-    // Draw stars background
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    for (let i = 0; i < 100; i++) {
+    // Stars background
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    for (let i = 0; i < 150; i++) {
       const x = (Math.sin(i * 123.456) * 0.5 + 0.5) * dimensions.width;
       const y = (Math.cos(i * 789.012) * 0.5 + 0.5) * dimensions.height;
       ctx.beginPath();
-      ctx.arc(x, y, 0.5, 0, Math.PI * 2);
+      ctx.arc(x, y, 0.5 + Math.random() * 0.5, 0, Math.PI * 2);
       ctx.fill();
     }
     
-    // Determine highlighted nodes
+    // Highlighted nodes
     const highlightedIds = new Set<string>();
     if (hoveredNode || selectedNode) {
       const focusNode = hoveredNode || selectedNode;
@@ -312,15 +408,66 @@ function Universe() {
       const isHighlighted = highlightedIds.size === 0 || 
         (highlightedIds.has(edge.source.id) && highlightedIds.has(edge.target.id));
       
+      const isIntelligenceEdge = Object.keys(edgeColors).includes(edge.relation);
+      
       ctx.beginPath();
       ctx.moveTo(edge.source.x, edge.source.y);
-      ctx.lineTo(edge.target.x, edge.target.y);
       
-      const alpha = isHighlighted ? 0.4 : 0.08;
-      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-      ctx.lineWidth = isHighlighted ? 1.5 : 0.5;
+      // Curved lines for intelligence edges
+      if (isIntelligenceEdge && showIntelligenceEdges) {
+        const midX = (edge.source.x + edge.target.x) / 2;
+        const midY = (edge.source.y + edge.target.y) / 2;
+        const dx = edge.target.x - edge.source.x;
+        const dy = edge.target.y - edge.source.y;
+        const controlX = midX - dy * 0.2;
+        const controlY = midY + dx * 0.2;
+        ctx.quadraticCurveTo(controlX, controlY, edge.target.x, edge.target.y);
+        
+        const color = edgeColors[edge.relation] || '#ffffff';
+        const alpha = isHighlighted ? 0.6 : 0.15;
+        ctx.strokeStyle = toRgba(color, alpha);
+        ctx.lineWidth = isHighlighted ? 2 : 1;
+        
+        // Dashed for future paths
+        if (edge.relation === 'FUTURE_PATH') {
+          ctx.setLineDash([5, 5]);
+        } else {
+          ctx.setLineDash([]);
+        }
+      } else {
+        ctx.lineTo(edge.target.x, edge.target.y);
+        const alpha = isHighlighted ? 0.4 : 0.08;
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.lineWidth = isHighlighted ? 1.5 : 0.5;
+        ctx.setLineDash([]);
+      }
+      
       ctx.stroke();
     });
+    
+    ctx.setLineDash([]);
+    
+    // Draw cluster backgrounds if in cluster view
+    if (viewMode === 'clusters' && activeCluster) {
+      const cluster = capabilityClusters.find(c => c.id === activeCluster);
+      if (cluster) {
+        const clusterNodes = filteredNodes.filter(n => cluster.nodeIds.includes(n.id));
+        if (clusterNodes.length > 2) {
+          ctx.beginPath();
+          const centerX = clusterNodes.reduce((sum, n) => sum + n.x, 0) / clusterNodes.length;
+          const centerY = clusterNodes.reduce((sum, n) => sum + n.y, 0) / clusterNodes.length;
+          const radius = Math.max(...clusterNodes.map(n => 
+            Math.sqrt(Math.pow(n.x - centerX, 2) + Math.pow(n.y - centerY, 2))
+          )) + 50;
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.fillStyle = toRgba(cluster.color, 0.05);
+          ctx.fill();
+          ctx.strokeStyle = toRgba(cluster.color, 0.2);
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
     
     // Draw nodes
     filteredNodes.forEach(node => {
@@ -328,23 +475,20 @@ function Universe() {
       const isSelected = selectedNode?.id === node.id;
       const isHovered = hoveredNode?.id === node.id;
       
-      // Size based on weight
       const baseSize = (node.weight || 30) / 10;
       const size = node.type === 'core' ? 20 : Math.max(4, Math.min(15, baseSize));
-      
-      // Alpha based on highlight state
       const alpha = isHighlighted ? 1 : 0.2;
       
-      // Glow for highlighted/selected
+      // Glow
       if (isSelected || isHovered || node.type === 'core') {
-        const glowSize = isSelected ? 25 : isHovered ? 20 : 15;
+        const glowSize = isSelected ? 30 : isHovered ? 25 : 18;
         const gradient = ctx.createRadialGradient(
           node.x, node.y, 0,
           node.x, node.y, size + glowSize
         );
         const color = nodeColors[node.type];
-        gradient.addColorStop(0, toRgba(color, 1));
-        gradient.addColorStop(0.5, toRgba(color, 0.3));
+        gradient.addColorStop(0, toRgba(color, 0.8));
+        gradient.addColorStop(0.4, toRgba(color, 0.3));
         gradient.addColorStop(1, 'transparent');
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -356,11 +500,12 @@ function Universe() {
       ctx.beginPath();
       ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
       
-      // Possibility nodes are hollow
       if (node.type === 'possibility') {
         ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.6})`;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
         ctx.stroke();
+        ctx.setLineDash([]);
         ctx.fillStyle = `rgba(255,255,255,${alpha * 0.1})`;
         ctx.fill();
       } else {
@@ -370,9 +515,9 @@ function Universe() {
       }
       
       // Label
-      if (isHighlighted && (zoom > 0.7 || isSelected || isHovered || node.type === 'core')) {
+      if (isHighlighted && (zoom > 0.6 || isSelected || isHovered || node.type === 'core')) {
         ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-        ctx.font = `${isSelected || isHovered || node.type === 'core' ? 'bold ' : ''}${Math.max(10, 12 / zoom)}px system-ui, sans-serif`;
+        ctx.font = `${isSelected || isHovered || node.type === 'core' ? 'bold ' : ''}${Math.max(9, 11 / zoom)}px system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(node.label, node.x, node.y + size + 4);
@@ -381,7 +526,7 @@ function Universe() {
     
     ctx.restore();
     
-  }, [simNodes, filteredNodes, filteredEdges, dimensions, zoom, pan, selectedNode, hoveredNode]);
+  }, [simNodes, filteredNodes, filteredEdges, dimensions, zoom, pan, selectedNode, hoveredNode, viewMode, activeCluster, showIntelligenceEdges]);
   
   // Mouse handlers
   const getNodeAtPosition = useCallback((clientX: number, clientY: number): SimNode | null => {
@@ -389,435 +534,726 @@ function Universe() {
     if (!canvas) return null;
     
     const rect = canvas.getBoundingClientRect();
-    // Transform mouse position to canvas coordinates
     const x = ((clientX - rect.left - pan.x - dimensions.width / 2) / zoom + dimensions.width / 2);
     const y = ((clientY - rect.top - pan.y - dimensions.height / 2) / zoom + dimensions.height / 2);
     
-    // Find closest node within threshold
     let closest: SimNode | null = null;
-    let closestDist = 20 / zoom; // Threshold
+    let closestDist = 25 / zoom;
     
     filteredNodes.forEach(node => {
       const dx = node.x - x;
       const dy = node.y - y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < closestDist) {
-        closest = node;
         closestDist = dist;
+        closest = node;
       }
     });
     
     return closest;
-  }, [filteredNodes, pan, zoom, dimensions]);
-  
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning) {
-      const dx = e.clientX - lastMouse.x;
-      const dy = e.clientY - lastMouse.y;
-      setPan(p => ({ x: p.x + dx, y: p.y + dy }));
-      setLastMouse({ x: e.clientX, y: e.clientY });
-      return;
-    }
-    
-    if (draggedNode) {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left - pan.x - dimensions.width / 2) / zoom + dimensions.width / 2);
-      const y = ((e.clientY - rect.top - pan.y - dimensions.height / 2) / zoom + dimensions.height / 2);
-      
-      setSimNodes(nodes => nodes.map(n => 
-        n.id === draggedNode.id ? { ...n, x, y, fx: x, fy: y } : n
-      ));
-      return;
-    }
-    
-    const node = getNodeAtPosition(e.clientX, e.clientY);
-    setHoveredNode(node);
-  }, [isPanning, draggedNode, lastMouse, getNodeAtPosition, pan, zoom, dimensions]);
+  }, [filteredNodes, zoom, pan, dimensions]);
   
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const node = getNodeAtPosition(e.clientX, e.clientY);
     if (node) {
       setDraggedNode(node);
       setIsDragging(true);
+      node.fx = node.x;
+      node.fy = node.y;
     } else {
       setIsPanning(true);
+    }
+    setLastMouse({ x: e.clientX, y: e.clientY });
+  }, [getNodeAtPosition]);
+  
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging && draggedNode) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      draggedNode.fx = ((e.clientX - rect.left - pan.x - dimensions.width / 2) / zoom + dimensions.width / 2);
+      draggedNode.fy = ((e.clientY - rect.top - pan.y - dimensions.height / 2) / zoom + dimensions.height / 2);
+    } else if (isPanning) {
+      const dx = e.clientX - lastMouse.x;
+      const dy = e.clientY - lastMouse.y;
+      setPan(p => ({ x: p.x + dx, y: p.y + dy }));
       setLastMouse({ x: e.clientX, y: e.clientY });
-    }
-  }, [getNodeAtPosition]);
-  
-  const handleMouseUp = useCallback(() => {
-    if (draggedNode && !isDragging) {
-      // It was a click, not a drag
-      setSelectedNode(draggedNode);
-    } else if (draggedNode) {
-      // Release the node
-      setSimNodes(nodes => nodes.map(n => 
-        n.id === draggedNode.id ? { ...n, fx: null, fy: null } : n
-      ));
-    }
-    setDraggedNode(null);
-    setIsDragging(false);
-    setIsPanning(false);
-  }, [draggedNode, isDragging]);
-  
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const node = getNodeAtPosition(e.clientX, e.clientY);
-    if (node) {
-      setSelectedNode(node);
     } else {
-      setSelectedNode(null);
+      const node = getNodeAtPosition(e.clientX, e.clientY);
+      setHoveredNode(node);
     }
-  }, [getNodeAtPosition]);
+  }, [isDragging, draggedNode, isPanning, lastMouse, getNodeAtPosition, zoom, pan, dimensions]);
+  
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (isDragging && draggedNode && !isPanning) {
+      const moveDistance = Math.sqrt(
+        Math.pow(e.clientX - lastMouse.x, 2) + Math.pow(e.clientY - lastMouse.y, 2)
+      );
+      if (moveDistance < 5) {
+        setSelectedNode(draggedNode);
+        // Update URL for deep link
+        const url = new URL(window.location.href);
+        url.searchParams.set('node', draggedNode.id);
+        window.history.pushState({}, '', url.toString());
+      }
+      draggedNode.fx = null;
+      draggedNode.fy = null;
+    }
+    setIsDragging(false);
+    setDraggedNode(null);
+    setIsPanning(false);
+  }, [isDragging, draggedNode, isPanning, lastMouse]);
   
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoom(z => Math.max(0.3, Math.min(3, z * delta)));
+    setZoom(z => Math.max(0.2, Math.min(3, z * delta)));
   }, []);
   
-  // Touch handlers for mobile
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      const node = getNodeAtPosition(touch.clientX, touch.clientY);
-      if (node) {
-        setSelectedNode(node);
-      } else {
-        setIsPanning(true);
-        setLastMouse({ x: touch.clientX, y: touch.clientY });
+  // Timeline dates for slider
+  const timelineDates = useMemo(() => {
+    const dates: string[] = [];
+    for (let year = 2022; year <= 2026; year++) {
+      for (let month = 1; month <= 12; month++) {
+        if (year === 2022 && month < 7) continue;
+        if (year === 2026 && month > 2) continue;
+        dates.push(`${year}-${String(month).padStart(2, '0')}`);
       }
     }
-  }, [getNodeAtPosition]);
-  
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1 && isPanning) {
-      const touch = e.touches[0];
-      const dx = touch.clientX - lastMouse.x;
-      const dy = touch.clientY - lastMouse.y;
-      setPan(p => ({ x: p.x + dx, y: p.y + dy }));
-      setLastMouse({ x: touch.clientX, y: touch.clientY });
-    }
-    // TODO: Pinch to zoom
-  }, [isPanning, lastMouse]);
-  
-  const handleTouchEnd = useCallback(() => {
-    setIsPanning(false);
+    return dates;
   }, []);
   
-  // Reset view
-  const resetView = useCallback(() => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    setSelectedNode(null);
-    setActiveFilters(new Set());
-    setSearchQuery('');
-  }, []);
+  // Get node details
+  const nodeCluster = selectedNode ? getClusterForNode(selectedNode.id) : null;
+  const nodeGrowthArcs = selectedNode ? getGrowthArcsForNode(selectedNode.id) : [];
+  const nodeCrossPollinations = selectedNode ? getCrossPollinationsForNode(selectedNode.id) : [];
+  const nodeFuturePaths = selectedNode ? getFuturePathsForNode(selectedNode.id) : [];
+  const nodeConnections = selectedNode ? getConnectedNodes(selectedNode.id) : [];
   
-  // Toggle filter
-  const toggleFilter = (type: NodeType) => {
-    setActiveFilters(prev => {
-      const next = new Set(prev);
-      if (next.has(type)) {
-        next.delete(type);
-      } else {
-        next.add(type);
-      }
-      return next;
-    });
+  // Share URL
+  const shareUrl = selectedNode 
+    ? `${window.location.origin}/universe?node=${selectedNode.id}`
+    : `${window.location.origin}/universe`;
+  
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
   };
-  
-  // Get connected nodes for selected
-  const connectedNodes = useMemo(() => {
-    if (!selectedNode) return [];
-    return getConnectedNodes(selectedNode.id);
-  }, [selectedNode]);
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white overflow-hidden">
-      <SEO title="Universe | Lakshveer Rao" />
+    <div className="min-h-screen bg-[#050508] text-white">
+      <SEO 
+        title={selectedNode ? `${selectedNode.label} — Lakshveer's Universe` : "Universe — Lakshveer's Momentum Intelligence Engine"} 
+        description="Explore Lakshveer's interconnected universe of projects, skills, and possibilities. An intelligence engine showing capability compounding and future paths."
+      />
       
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-20 bg-gradient-to-b from-[#050508] to-transparent pointer-events-none">
-        <div className="px-4 py-4 md:px-6 flex items-center justify-between pointer-events-auto">
-          <div>
-            <a href="/" className="text-lg font-semibold text-white/90 hover:text-white">
-              ← Lakshveer
+      {/* Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[#050508]/90 backdrop-blur-sm border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Left: Back + Title */}
+          <div className="flex items-center gap-4">
+            <a href="/" className="text-white/60 hover:text-white transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
             </a>
-            <h1 className="text-sm text-white/50">The Universe</h1>
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight">Lakshveer's Universe</h1>
+              <p className="text-xs text-white/50">Momentum Intelligence Engine</p>
+            </div>
           </div>
           
-          {/* Search */}
-          <div className="hidden md:block">
-            <input
-              type="text"
-              placeholder="Search nodes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-4 py-2 bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm w-64 focus:outline-none focus:border-cyan-500/50"
-            />
+          {/* Center: View Mode Tabs */}
+          <div className="hidden md:flex items-center gap-1 bg-white/5 rounded-lg p-1">
+            {(['explore', 'clusters', 'timeline', 'momentum'] as ViewMode[]).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  viewMode === mode 
+                    ? 'bg-cyan-500/20 text-cyan-400' 
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
           </div>
           
-          {/* Stats */}
-          <div className="hidden lg:flex items-center gap-4 text-xs text-white/50">
-            <span>{stats.totalNodes} nodes</span>
-            <span>{stats.totalEdges} connections</span>
-            <span>{(stats.totalReach / 1000).toFixed(0)}K+ reach</span>
-          </div>
-        </div>
-      </header>
-      
-      {/* Main Canvas */}
-      <div 
-        ref={containerRef}
-        className="fixed inset-0"
-        style={{ cursor: isPanning ? 'grabbing' : hoveredNode ? 'pointer' : 'grab' }}
-      >
-        <canvas
-          ref={canvasRef}
-          width={dimensions.width}
-          height={dimensions.height}
-          onMouseMove={handleMouseMove}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onClick={handleClick}
-          onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ touchAction: 'none' }}
-        />
-      </div>
-      
-      {/* Left Panel - Filters */}
-      <div className="fixed left-4 top-20 z-10 hidden md:block">
-        <div className="bg-black/50 backdrop-blur-sm border border-white/10 p-4 w-48">
-          <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3">Filter by Type</h3>
-          <div className="space-y-1">
-            {Object.entries(nodeTypeLabels).map(([type, label]) => {
-              const isActive = activeFilters.size === 0 || activeFilters.has(type as NodeType);
-              const count = stats.nodesByType[type as NodeType] || 0;
-              return (
-                <button
-                  key={type}
-                  onClick={() => toggleFilter(type as NodeType)}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs transition-all ${
-                    isActive ? 'text-white' : 'text-white/30'
-                  }`}
-                >
-                  <span 
-                    className="w-2 h-2 rounded-full"
-                    style={{ 
-                      backgroundColor: isActive ? nodeColors[type as NodeType] : 'transparent',
-                      border: `1px solid ${nodeColors[type as NodeType]}`
-                    }}
-                  />
-                  <span className="flex-1 text-left">{label}</span>
-                  <span className="text-white/40">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
-            <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+          {/* Right: Search + Share */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
               <input
-                type="checkbox"
-                checked={showPossibilities}
-                onChange={(e) => setShowPossibilities(e.target.checked)}
-                className="rounded border-white/30"
+                type="text"
+                placeholder="Search nodes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-40 md:w-56 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50"
               />
-              Show Possibilities
-            </label>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <button
+              onClick={copyShareLink}
+              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              title="Copy share link"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        {/* Timeline Slider (when in timeline mode) */}
+        {viewMode === 'timeline' && (
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-white/50 w-16">Jul 2022</span>
+              <input
+                type="range"
+                min={0}
+                max={timelineDates.length - 1}
+                value={timelineDates.indexOf(timelineDate)}
+                onChange={(e) => setTimelineDate(timelineDates[parseInt(e.target.value)])}
+                className="flex-1 accent-cyan-500"
+              />
+              <span className="text-xs text-white/50 w-16 text-right">Feb 2026</span>
+              <span className="text-sm font-mono text-cyan-400 w-20 text-right">{timelineDate}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Main Layout */}
+      <div className="fixed inset-0 pt-[60px] flex">
+        {/* Left Panel - Clusters & Momentum */}
+        <div className={`${leftPanelOpen ? 'w-72' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-white/10 bg-[#050508]/80 backdrop-blur-sm`}>
+          <div className="h-full overflow-y-auto p-4 space-y-6">
+            {/* Capability Clusters */}
+            <div>
+              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Capability Clusters</h3>
+              <div className="space-y-2">
+                {capabilityClusters.map(cluster => (
+                  <button
+                    key={cluster.id}
+                    onClick={() => setActiveCluster(activeCluster === cluster.id ? null : cluster.id)}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                      activeCluster === cluster.id 
+                        ? 'bg-white/10 border border-white/20' 
+                        : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium" style={{ color: cluster.color }}>{cluster.name}</span>
+                      <span className="text-xs text-white/40">L{cluster.level}</span>
+                    </div>
+                    <p className="text-xs text-white/50 line-clamp-1">{cluster.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full" 
+                          style={{ width: `${cluster.level * 20}%`, backgroundColor: cluster.color }}
+                        />
+                      </div>
+                      <span className="text-xs text-white/40">{cluster.nodeIds.length} nodes</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Momentum Metrics */}
+            <div>
+              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Momentum Metrics</h3>
+              <div className="space-y-3">
+                <div className="p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-white/70">Overall Momentum</span>
+                    <span className="text-lg font-bold text-cyan-400">{momentum.overallMomentum}</span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full" 
+                      style={{ width: `${momentum.overallMomentum}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {[
+                  { label: 'Build Frequency', value: momentum.buildFrequency, color: '#10b981' },
+                  { label: 'Brand Impact', value: momentum.brandImpact, color: '#3b82f6' },
+                  { label: 'Skill Density', value: momentum.skillDensity, color: '#8b5cf6' },
+                  { label: 'Network Growth', value: momentum.networkExpansion, color: '#ec4899' },
+                  { label: 'Recognition', value: momentum.recognitionGrowth, color: '#f59e0b' },
+                ].map(metric => (
+                  <div key={metric.label} className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-white/50">{metric.label}</span>
+                        <span className="text-xs font-mono" style={{ color: metric.color }}>{metric.value}</span>
+                      </div>
+                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full" 
+                          style={{ width: `${Math.min(100, metric.value)}%`, backgroundColor: metric.color }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Quick Stats */}
+            <div>
+              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Universe Stats</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 bg-white/5 rounded-lg text-center">
+                  <div className="text-lg font-bold text-white">{stats.totalNodes}</div>
+                  <div className="text-xs text-white/50">Nodes</div>
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg text-center">
+                  <div className="text-lg font-bold text-white">{stats.totalEdges}</div>
+                  <div className="text-xs text-white/50">Connections</div>
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg text-center">
+                  <div className="text-lg font-bold text-cyan-400">{crossPollinations.length}</div>
+                  <div className="text-xs text-white/50">Cross-pollinations</div>
+                </div>
+                <div className="p-2 bg-white/5 rounded-lg text-center">
+                  <div className="text-lg font-bold text-amber-400">{futurePaths.length}</div>
+                  <div className="text-xs text-white/50">Future Paths</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Toggle Intelligence Edges */}
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <span className="text-sm text-white/70">Show Intelligence Edges</span>
+              <button
+                onClick={() => setShowIntelligenceEdges(!showIntelligenceEdges)}
+                className={`w-10 h-5 rounded-full transition-colors ${
+                  showIntelligenceEdges ? 'bg-cyan-500' : 'bg-white/20'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                  showIntelligenceEdges ? 'translate-x-5' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Toggle Left Panel */}
+        <button
+          onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/10 hover:bg-white/20 rounded-r-lg transition-all"
+          style={{ left: leftPanelOpen ? '288px' : '0' }}
+        >
+          <svg className={`w-4 h-4 transition-transform ${leftPanelOpen ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        
+        {/* Canvas Container */}
+        <div 
+          ref={containerRef} 
+          className="flex-1 relative cursor-grab active:cursor-grabbing"
+          style={{ minHeight: 0 }}
+        >
+          <canvas
+            ref={canvasRef}
+            width={dimensions.width}
+            height={dimensions.height}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
+          />
+          
+          {/* Zoom controls */}
+          <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+            <button
+              onClick={() => setZoom(z => Math.min(3, z * 1.2))}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setZoom(z => Math.max(0.2, z / 1.2))}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
+            <button
+              onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-xs font-mono"
+            >
+              1:1
+            </button>
           </div>
           
-          <button
-            onClick={resetView}
-            className="mt-4 w-full px-3 py-2 text-xs border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-all"
-          >
-            Reset View
-          </button>
-        </div>
-      </div>
-      
-      {/* Right Panel - Details */}
-      {selectedNode && (
-        <div className="fixed right-4 top-20 bottom-4 z-10 w-80 overflow-hidden">
-          <div className="h-full bg-black/50 backdrop-blur-sm border border-white/10 p-4 overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <span 
-                  className="inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider mb-2"
-                  style={{ 
-                    backgroundColor: nodeColors[selectedNode.type] + '20',
-                    color: nodeColors[selectedNode.type]
-                  }}
-                >
-                  {nodeTypeLabels[selectedNode.type]}
-                </span>
-                <h2 className="text-xl font-semibold">{selectedNode.label}</h2>
-              </div>
+          {/* Legend */}
+          <div className="absolute bottom-4 left-20 flex flex-wrap gap-3">
+            {Object.entries(nodeTypeLabels).slice(0, 6).map(([type, label]) => (
               <button
-                onClick={() => setSelectedNode(null)}
-                className="text-white/50 hover:text-white text-xl"
+                key={type}
+                onClick={() => {
+                  const newFilters = new Set(activeFilters);
+                  if (newFilters.has(type as NodeType)) {
+                    newFilters.delete(type as NodeType);
+                  } else {
+                    newFilters.add(type as NodeType);
+                  }
+                  setActiveFilters(newFilters);
+                }}
+                className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-all ${
+                  activeFilters.has(type as NodeType) 
+                    ? 'bg-white/20' 
+                    : activeFilters.size > 0 ? 'opacity-40' : 'opacity-70 hover:opacity-100'
+                }`}
               >
-                ×
+                <div 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: nodeColors[type as NodeType] }}
+                />
+                <span>{label}</span>
               </button>
-            </div>
-            
-            {/* Description */}
-            {selectedNode.description && (
-              <p className="text-sm text-white/70 mb-4">{selectedNode.description}</p>
-            )}
-            
-            {/* Metadata */}
-            <div className="space-y-2 mb-6">
-              {selectedNode.year && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Year</span>
-                  <span>{selectedNode.year}</span>
-                </div>
-              )}
-              {selectedNode.reach && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Potential Reach</span>
-                  <span className="text-cyan-400">{(selectedNode.reach / 1000).toFixed(0)}K+</span>
-                </div>
-              )}
-              {selectedNode.status && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Status</span>
-                  <span className={selectedNode.status === 'live' ? 'text-green-400' : 'text-yellow-400'}>
-                    {selectedNode.status}
-                  </span>
-                </div>
-              )}
-              {selectedNode.url && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Link</span>
-                  <a 
-                    href={selectedNode.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:underline"
-                  >
-                    Visit ↗
-                  </a>
-                </div>
-              )}
-            </div>
-            
-            {/* Connected Nodes */}
-            {connectedNodes.length > 0 && (
-              <div>
-                <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3">
-                  Connected ({connectedNodes.length})
-                </h3>
-                <div className="space-y-1 max-h-64 overflow-y-auto">
-                  {connectedNodes.map(({ node, edge }) => (
+            ))}
+          </div>
+        </div>
+        
+        {/* Toggle Right Panel */}
+        <button
+          onClick={() => setRightPanelOpen(!rightPanelOpen)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white/10 hover:bg-white/20 rounded-l-lg transition-all"
+          style={{ right: rightPanelOpen ? '352px' : '0' }}
+        >
+          <svg className={`w-4 h-4 transition-transform ${rightPanelOpen ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        
+        {/* Right Panel - Details & Insights */}
+        <div className={`${rightPanelOpen ? 'w-88' : 'w-0'} transition-all duration-300 overflow-hidden border-l border-white/10 bg-[#050508]/80 backdrop-blur-sm`} style={{ width: rightPanelOpen ? '352px' : '0' }}>
+          <div className="h-full overflow-y-auto p-4 space-y-6">
+            {selectedNode ? (
+              <>
+                {/* Node Header */}
+                <div>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: nodeColors[selectedNode.type] }}
+                        />
+                        <span className="text-xs text-white/50 uppercase">{nodeTypeLabels[selectedNode.type]}</span>
+                      </div>
+                      <h2 className="text-xl font-semibold">{selectedNode.label}</h2>
+                    </div>
                     <button
-                      key={node.id}
                       onClick={() => {
-                        const simNode = simNodes.find(n => n.id === node.id);
-                        if (simNode) setSelectedNode(simNode);
+                        setSelectedNode(null);
+                        window.history.pushState({}, '', '/universe');
                       }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm hover:bg-white/5 transition-colors"
+                      className="p-1.5 hover:bg-white/10 rounded transition-colors"
                     >
-                      <span 
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: nodeColors[node.type] }}
-                      />
-                      <span className="flex-1 truncate">{node.label}</span>
-                      <span className="text-[10px] text-white/40">{edge.relation}</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     </button>
-                  ))}
+                  </div>
+                  {selectedNode.description && (
+                    <p className="text-sm text-white/70">{selectedNode.description}</p>
+                  )}
+                  {selectedNode.year && (
+                    <p className="text-xs text-white/40 mt-2">Year: {selectedNode.year}</p>
+                  )}
+                  {selectedNode.url && (
+                    <a 
+                      href={selectedNode.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 mt-2"
+                    >
+                      Visit
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  )}
                 </div>
-              </div>
-            )}
-            
-            {/* Possibility hint */}
-            {selectedNode.type === 'possibility' && (
-              <div className="mt-6 p-3 bg-cyan-500/10 border border-cyan-500/20 text-sm">
-                <p className="text-cyan-400 font-medium mb-1">Future Possibility</p>
-                <p className="text-white/60 text-xs">
-                  This represents something Lakshveer could achieve based on his current skills and connections.
-                </p>
-              </div>
+                
+                {/* Share Link */}
+                <div className="p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/50">Share this node</span>
+                    <button
+                      onClick={copyShareLink}
+                      className="text-xs text-cyan-400 hover:text-cyan-300"
+                    >
+                      Copy link
+                    </button>
+                  </div>
+                  <div className="text-xs text-white/40 font-mono truncate">{shareUrl}</div>
+                </div>
+                
+                {/* Cluster Info */}
+                {nodeCluster && (
+                  <div className="p-3 rounded-lg border" style={{ borderColor: toRgba(nodeCluster.color, 0.3), backgroundColor: toRgba(nodeCluster.color, 0.05) }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: nodeCluster.color }} />
+                      <span className="text-sm font-medium" style={{ color: nodeCluster.color }}>
+                        {nodeCluster.name}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/50">{nodeCluster.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-white/40">Mastery Level {nodeCluster.level}</span>
+                      <span className="text-xs text-white/40">·</span>
+                      <span className="text-xs text-white/40">{nodeCluster.growthRate.toFixed(1)} proj/mo</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Growth Arcs */}
+                {nodeGrowthArcs.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Part of Growth Arcs</h3>
+                    <div className="space-y-2">
+                      {nodeGrowthArcs.map(arc => (
+                        <div key={arc.id} className="p-3 bg-white/5 rounded-lg">
+                          <div className="font-medium text-sm text-cyan-400 mb-1">{arc.name}</div>
+                          <p className="text-xs text-white/50 mb-2">{arc.description}</p>
+                          <div className="text-xs text-white/40">
+                            Phase: {arc.currentPhase} · Started {arc.startDate}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Cross-pollinations */}
+                {nodeCrossPollinations.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Cross-pollinations</h3>
+                    <div className="space-y-2">
+                      {nodeCrossPollinations.map((cp, i) => (
+                        <div key={i} className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                          <div className="flex items-center gap-2 text-xs text-purple-400 mb-1">
+                            <span>{cp.sourceProject}</span>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                            <span>{cp.targetProject}</span>
+                          </div>
+                          <p className="text-xs text-white/60">{cp.sharedLearning}</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-white/40">{cp.date}</span>
+                            <span className="text-xs text-purple-400">Impact: {cp.impactScore}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Future Paths */}
+                {nodeFuturePaths.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">What This Enables</h3>
+                    <div className="space-y-2">
+                      {nodeFuturePaths.map(fp => (
+                        <div key={fp.id} className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm text-amber-400">{fp.name}</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              fp.impact === 'transformative' ? 'bg-amber-500/20 text-amber-400' :
+                              fp.impact === 'high' ? 'bg-green-500/20 text-green-400' :
+                              'bg-white/10 text-white/60'
+                            }`}>
+                              {fp.impact}
+                            </span>
+                          </div>
+                          <p className="text-xs text-white/60 mb-2">{fp.description}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-white/40">{fp.timeframe}</span>
+                            <span className="text-xs text-amber-400">{fp.probability}% likely</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Connected Nodes */}
+                <div>
+                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+                    Connections ({nodeConnections.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {nodeConnections.slice(0, 15).map(conn => (
+                      <button
+                        key={conn.node.id}
+                        onClick={() => {
+                          const simNode = simNodes.find(n => n.id === conn.node.id);
+                          if (simNode) setSelectedNode(simNode);
+                        }}
+                        className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs transition-colors"
+                      >
+                        <span style={{ color: nodeColors[conn.node.type] }}>{conn.node.label}</span>
+                        <span className="text-white/30 ml-1">· {conn.relation}</span>
+                      </button>
+                    ))}
+                    {nodeConnections.length > 15 && (
+                      <span className="px-2 py-1 text-xs text-white/40">+{nodeConnections.length - 15} more</span>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Auto-Generated Insights */}
+                <div>
+                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Intelligence Insights</h3>
+                  <div className="space-y-3">
+                    {insights.map(insight => (
+                      <div 
+                        key={insight.id} 
+                        className={`p-3 rounded-lg border ${
+                          insight.priority === 'urgent' ? 'bg-red-500/10 border-red-500/30' :
+                          insight.priority === 'high' ? 'bg-cyan-500/10 border-cyan-500/30' :
+                          insight.priority === 'medium' ? 'bg-amber-500/10 border-amber-500/30' :
+                          'bg-white/5 border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-xs px-1.5 py-0.5 rounded uppercase ${
+                            insight.type === 'growth' ? 'bg-green-500/20 text-green-400' :
+                            insight.type === 'opportunity' ? 'bg-amber-500/20 text-amber-400' :
+                            insight.type === 'compound' ? 'bg-purple-500/20 text-purple-400' :
+                            insight.type === 'milestone' ? 'bg-cyan-500/20 text-cyan-400' :
+                            'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {insight.type.replace('_', ' ')}
+                          </span>
+                          <span className={`text-xs ${
+                            insight.priority === 'high' || insight.priority === 'urgent' 
+                              ? 'text-white/70' : 'text-white/40'
+                          }`}>
+                            {insight.priority}
+                          </span>
+                        </div>
+                        <h4 className="font-medium text-sm mb-1">{insight.title}</h4>
+                        <p className="text-xs text-white/60">{insight.description}</p>
+                        {insight.actionable && (
+                          <div className="mt-2 pt-2 border-t border-white/10">
+                            <span className="text-xs text-cyan-400">Next step: {insight.actionable}</span>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {insight.relatedNodes.slice(0, 4).map(nodeId => {
+                            const node = allNodes.find(n => n.id === nodeId);
+                            return node ? (
+                              <button
+                                key={nodeId}
+                                onClick={() => {
+                                  const simNode = simNodes.find(n => n.id === nodeId);
+                                  if (simNode) setSelectedNode(simNode);
+                                }}
+                                className="text-xs px-1.5 py-0.5 bg-white/5 hover:bg-white/10 rounded transition-colors"
+                                style={{ color: nodeColors[node.type] }}
+                              >
+                                {node.label}
+                              </button>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Growth Arcs */}
+                <div>
+                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Growth Arcs</h3>
+                  <div className="space-y-3">
+                    {growthArcs.map(arc => (
+                      <div key={arc.id} className="p-3 bg-white/5 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm text-cyan-400">{arc.name}</span>
+                          <span className="text-xs text-white/40">{arc.currentPhase}</span>
+                        </div>
+                        <p className="text-xs text-white/50 mb-2">{arc.description}</p>
+                        <div className="flex items-center gap-1">
+                          {arc.milestones.map((m, i) => (
+                            <div 
+                              key={m.nodeId}
+                              className="w-2 h-2 rounded-full bg-cyan-500 cursor-pointer hover:scale-150 transition-transform"
+                              title={`${m.date}: ${m.achievement}`}
+                              onClick={() => {
+                                const simNode = simNodes.find(n => n.id === m.nodeId);
+                                if (simNode) setSelectedNode(simNode);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Future Paths Overview */}
+                <div>
+                  <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Strategic Future Paths</h3>
+                  <div className="space-y-2">
+                    {futurePaths.slice(0, 5).map(fp => (
+                      <div key={fp.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                        <div>
+                          <span className="text-sm text-white/80">{fp.name}</span>
+                          <div className="text-xs text-white/40">{fp.timeframe}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-mono text-amber-400">{fp.probability}%</div>
+                          <div className={`text-xs ${
+                            fp.impact === 'transformative' ? 'text-amber-400' :
+                            fp.impact === 'high' ? 'text-green-400' :
+                            'text-white/40'
+                          }`}>
+                            {fp.impact}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Help text */}
+                <div className="p-3 bg-white/5 rounded-lg">
+                  <p className="text-xs text-white/50">
+                    Click on any node to see its details, connections, and what it enables.
+                    Use the timeline slider to see growth over time.
+                  </p>
+                </div>
+              </>
             )}
           </div>
         </div>
-      )}
-      
-      {/* Mobile Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 md:hidden bg-gradient-to-t from-[#050508] to-transparent">
-        <div className="p-4">
-          {selectedNode ? (
-            <div className="bg-black/80 backdrop-blur-sm border border-white/10 p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span 
-                  className="text-xs uppercase"
-                  style={{ color: nodeColors[selectedNode.type] }}
-                >
-                  {nodeTypeLabels[selectedNode.type]}
-                </span>
-                <button
-                  onClick={() => setSelectedNode(null)}
-                  className="text-white/50"
-                >
-                  ×
-                </button>
-              </div>
-              <h3 className="font-semibold">{selectedNode.label}</h3>
-              {selectedNode.description && (
-                <p className="text-xs text-white/60 mt-1 line-clamp-2">{selectedNode.description}</p>
-              )}
-              {selectedNode.url && (
-                <a 
-                  href={selectedNode.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block mt-2 text-xs text-cyan-400"
-                >
-                  Visit ↗
-                </a>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-between text-sm text-white/50">
-              <span>{stats.totalNodes} nodes · {stats.totalEdges} connections</span>
-              <button
-                onClick={resetView}
-                className="px-3 py-1 border border-white/20 text-xs"
-              >
-                Reset
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Zoom Controls */}
-      <div className="fixed bottom-4 left-4 z-10 hidden md:flex flex-col gap-1">
-        <button
-          onClick={() => setZoom(z => Math.min(3, z * 1.2))}
-          className="w-8 h-8 bg-black/50 border border-white/10 text-white/70 hover:text-white flex items-center justify-center"
-        >
-          +
-        </button>
-        <button
-          onClick={() => setZoom(z => Math.max(0.3, z / 1.2))}
-          className="w-8 h-8 bg-black/50 border border-white/10 text-white/70 hover:text-white flex items-center justify-center"
-        >
-          −
-        </button>
-      </div>
-      
-      {/* Instructions */}
-      <div className="fixed bottom-4 right-4 z-10 hidden lg:block text-xs text-white/30">
-        Drag to pan · Scroll to zoom · Click nodes to explore
       </div>
     </div>
   );
