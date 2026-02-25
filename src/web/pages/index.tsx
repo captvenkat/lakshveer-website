@@ -374,17 +374,20 @@ function Index() {
               
               {/* Endorsements Ticker */}
               {latestEndorsements.length > 0 && (
-                <div className="relative overflow-hidden py-3 border-t border-[var(--border-subtle)]">
-                  <div className="endorsements-ticker flex gap-8 animate-ticker">
+                <a 
+                  href="/endorse"
+                  className="block relative overflow-hidden py-3 border-t border-[var(--border-subtle)] hover:border-[var(--accent)] transition-colors group"
+                >
+                  <div className="endorsements-ticker flex gap-12 animate-ticker">
                     {[...latestEndorsements, ...latestEndorsements].map((endorsement, index) => (
                       <div 
                         key={index} 
-                        className="flex-shrink-0 flex items-center gap-3 text-sm"
+                        className="flex-shrink-0 flex items-center gap-2 text-sm"
                       >
-                        <span className="text-[var(--text-secondary)] italic max-w-[280px] truncate">
+                        <span className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                           "{endorsement.quote}"
                         </span>
-                        <span className="text-[var(--text-muted)]">
+                        <span className="text-[var(--text-muted)] whitespace-nowrap">
                           — {endorsement.name}
                         </span>
                       </div>
@@ -396,13 +399,13 @@ function Index() {
                       100% { transform: translateX(-50%); }
                     }
                     .animate-ticker {
-                      animation: ticker 30s linear infinite;
+                      animation: ticker 12s linear infinite;
                     }
                     .animate-ticker:hover {
                       animation-play-state: paused;
                     }
                   `}</style>
-                </div>
+                </a>
               )}
             </div>
             
