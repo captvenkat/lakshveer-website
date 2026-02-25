@@ -289,20 +289,25 @@ function Index() {
     <div className="min-h-screen">
       <SEO title={PAGE_TITLES.home} />
       
-      {/* Open To Banner */}
+      {/* Action Bar */}
       <div className="bg-[var(--accent)]/5 border-b border-[var(--accent)]/10">
         <div className="container-main py-3">
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
-            <span className="text-[var(--text-secondary)]">Open to:</span>
-            <a href="/invite" className="text-[var(--accent)] hover:opacity-80 transition-opacity">Hackathon Invites</a>
-            <span className="text-[var(--border-subtle)]">•</span>
-            <a href="/invite" className="text-[var(--accent)] hover:opacity-80 transition-opacity">Guest Talks</a>
-            <span className="text-[var(--border-subtle)]">•</span>
-            <a href="/collaborate" className="text-[var(--accent)] hover:opacity-80 transition-opacity">Grants</a>
-            <span className="text-[var(--border-subtle)]">•</span>
-            <a href="/collaborate" className="text-[var(--accent)] hover:opacity-80 transition-opacity">Sponsorship</a>
-            <a href="/invite" className="ml-2 px-3 py-1 bg-[var(--accent)]/10 border border-[var(--accent)]/20 rounded-full text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors">
-              Invite →
+          <div className="flex items-center justify-center gap-6 md:gap-8 text-sm">
+            <a 
+              href="https://twitter.com/intent/tweet?text=Watching%20%40IamLakshveer%20build%20is%20inspiring.%20At%208%2C%20he's%20shipping%20real%20hardware%20%2B%20AI%20projects.%20Check%20his%20work%3A%20lakshveer.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+            >
+              Endorse
+            </a>
+            <span className="text-[var(--border-subtle)]">|</span>
+            <a href="/invite" className="text-[var(--accent)] font-medium hover:opacity-80 transition-opacity">
+              Invite
+            </a>
+            <span className="text-[var(--border-subtle)]">|</span>
+            <a href="/collaborate" className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
+              Enable
             </a>
           </div>
         </div>
