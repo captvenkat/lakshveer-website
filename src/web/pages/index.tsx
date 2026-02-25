@@ -900,7 +900,6 @@ function Index() {
                           organisation: endorsement.organisation,
                         });
                       }}
-                      className="opacity-100 sm:opacity-0"
                     />
                     {endorsement.proofUrl && (
                       <a 

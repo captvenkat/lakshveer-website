@@ -440,7 +440,6 @@ function Recognition() {
                         handle: mention.author,
                       });
                     }}
-                    className="opacity-100 sm:opacity-0"
                   />
                   <a 
                     href={mention.url}

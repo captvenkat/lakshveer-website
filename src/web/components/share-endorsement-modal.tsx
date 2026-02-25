@@ -302,7 +302,7 @@ export function EndorsementShareButton({ onClick, className = "" }: ShareButtonP
   return (
     <button
       onClick={onClick}
-      className={`p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-all duration-200 ${className}`}
+      className={`p-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] transition-all duration-200 ${className}`}
       title="Share endorsement"
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
