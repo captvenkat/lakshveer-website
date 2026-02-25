@@ -460,57 +460,50 @@ function Index() {
         <section className="mb-24 md:mb-32">
           <a 
             href="/universe"
-            className="group block relative overflow-hidden border border-[var(--border-subtle)] hover:border-[var(--accent)]/50 transition-all duration-300 bg-gradient-to-br from-[var(--bg-elevated)] to-[#0a0a12]"
+            className="group block relative overflow-hidden border border-[var(--border-subtle)] hover:border-[var(--accent)]/50 transition-all duration-300 bg-[#050508]"
           >
-            {/* Animated background dots */}
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute w-2 h-2 rounded-full bg-cyan-500/60 animate-pulse" style={{ top: '20%', left: '15%' }} />
-              <div className="absolute w-1.5 h-1.5 rounded-full bg-purple-500/60 animate-pulse" style={{ top: '60%', left: '25%', animationDelay: '0.5s' }} />
-              <div className="absolute w-2 h-2 rounded-full bg-emerald-500/60 animate-pulse" style={{ top: '30%', left: '70%', animationDelay: '1s' }} />
-              <div className="absolute w-1.5 h-1.5 rounded-full bg-amber-500/60 animate-pulse" style={{ top: '70%', left: '80%', animationDelay: '0.3s' }} />
-              <div className="absolute w-1 h-1 rounded-full bg-pink-500/60 animate-pulse" style={{ top: '45%', left: '50%', animationDelay: '0.7s' }} />
-              <div className="absolute w-1.5 h-1.5 rounded-full bg-blue-500/60 animate-pulse" style={{ top: '25%', left: '40%', animationDelay: '1.2s' }} />
-              {/* Connection lines */}
-              <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.15 }}>
-                <line x1="15%" y1="20%" x2="25%" y2="60%" stroke="currentColor" strokeWidth="0.5" className="text-white" />
-                <line x1="25%" y1="60%" x2="50%" y2="45%" stroke="currentColor" strokeWidth="0.5" className="text-white" />
-                <line x1="50%" y1="45%" x2="70%" y2="30%" stroke="currentColor" strokeWidth="0.5" className="text-white" />
-                <line x1="70%" y1="30%" x2="80%" y2="70%" stroke="currentColor" strokeWidth="0.5" className="text-white" />
-                <line x1="40%" y1="25%" x2="50%" y2="45%" stroke="currentColor" strokeWidth="0.5" className="text-white" />
-              </svg>
-            </div>
-            
-            <div className="relative px-8 py-10 md:px-12 md:py-14">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="flex-1">
-                  <h2 className="text-xl md:text-2xl font-semibold mb-2 text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
-                    Explore Lakshveer's Learning Universe
-                  </h2>
-                  <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-xl leading-relaxed">
-                    See how 170+ projects, skills, and connections compound into capabilities. 
-                    An interactive map showing cross-pollination of ideas and future paths.
-                  </p>
-                  <div className="flex flex-wrap gap-4 mt-4 text-xs text-[var(--text-muted)]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
-                      6 Capability Clusters
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                      8 Future Paths
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                      Cross-pollinations
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <span className="text-[var(--accent)] text-sm font-medium group-hover:translate-x-1 transition-transform">
-                    Enter Universe →
+            <div className="flex flex-col md:flex-row">
+              {/* Left side - Screenshot preview */}
+              <div className="relative w-full md:w-1/2 h-48 md:h-auto overflow-hidden">
+                <img 
+                  src="./universe-preview.png" 
+                  alt="Lakshveer's Learning Universe - Interactive knowledge graph"
+                  className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#050508] md:block hidden" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-transparent md:hidden" />
+              </div>
+              
+              {/* Right side - Content */}
+              <div className="relative flex-1 px-6 py-8 md:px-10 md:py-10">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3 text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                  Explore Lakshveer's Learning Universe
+                </h2>
+                <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed mb-4">
+                  See how 170+ projects, skills, and connections compound into capabilities. 
+                  An interactive map showing cross-pollination of ideas and future paths.
+                </p>
+                <div className="flex flex-wrap gap-3 mb-6 text-xs text-[var(--text-muted)]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                    6 Capability Clusters
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    8 Future Paths
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                    Cross-pollinations
                   </span>
                 </div>
+                <span className="inline-flex items-center gap-2 text-[var(--accent)] text-sm font-medium group-hover:gap-3 transition-all">
+                  Enter Universe
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
               </div>
             </div>
           </a>

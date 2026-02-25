@@ -642,8 +642,9 @@ function Universe() {
   return (
     <div className="min-h-screen bg-[#050508] text-white">
       <SEO 
-        title={selectedNode ? `${selectedNode.label} — Lakshveer's Universe` : "Universe — Lakshveer's Momentum Intelligence Engine"} 
+        title={selectedNode ? `${selectedNode.label} — Lakshveer's Learning Universe` : "Lakshveer's Learning Universe — Build to Learn"} 
         description="Explore Lakshveer's interconnected universe of projects, skills, and possibilities. An intelligence engine showing capability compounding and future paths."
+        ogImage="https://lakshveer.com/universe-og.png"
       />
       
       {/* Top Bar */}
@@ -657,8 +658,8 @@ function Universe() {
               </svg>
             </a>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight">Lakshveer's Universe</h1>
-              <p className="text-xs text-white/50">Momentum Intelligence Engine</p>
+              <h1 className="text-lg font-semibold tracking-tight">Lakshveer's Learning Universe</h1>
+              <p className="text-xs text-white/50">Build to Learn</p>
             </div>
           </div>
           
