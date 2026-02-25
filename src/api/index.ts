@@ -632,7 +632,7 @@ app.get('/supporters/quotes', async (c) => {
 app.get('/supporters/admin', async (c) => {
   try {
     const results = await c.env.DB.prepare(
-      `SELECT handle, name, token, quote, submitted_at FROM supporters ORDER BY name`
+      `SELECT handle, name, token, quote, submitted_at, sent_at FROM supporters ORDER BY name`
     ).all();
     
     return c.json({
@@ -642,6 +642,38 @@ app.get('/supporters/admin', async (c) => {
   } catch (error) {
     console.error('Admin fetch error:', error);
     return c.json({ success: false, error: 'Failed to fetch supporters' }, 500);
+  }
+});
+
+// Admin: Mark supporter as sent (message was sent to them)
+app.post('/supporters/:handle/sent', async (c) => {
+  try {
+    const { handle } = c.req.param();
+    
+    await c.env.DB.prepare(
+      `UPDATE supporters SET sent_at = datetime('now') WHERE handle = ?`
+    ).bind(handle).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Mark sent error:', error);
+    return c.json({ success: false, error: 'Failed to mark as sent' }, 500);
+  }
+});
+
+// Admin: Unmark supporter as sent (undo)
+app.delete('/supporters/:handle/sent', async (c) => {
+  try {
+    const { handle } = c.req.param();
+    
+    await c.env.DB.prepare(
+      `UPDATE supporters SET sent_at = NULL WHERE handle = ?`
+    ).bind(handle).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Unmark sent error:', error);
+    return c.json({ success: false, error: 'Failed to unmark as sent' }, 500);
   }
 });
 

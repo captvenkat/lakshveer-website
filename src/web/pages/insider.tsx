@@ -18,6 +18,7 @@ interface Supporter {
   token: string;
   quote: string | null;
   submitted_at: string | null;
+  sent_at: string | null;
 }
 
 interface Stats {
@@ -511,25 +512,29 @@ function Messages({
 }
 
 // Endorsements Tab
-function Endorsements({ supporters }: { supporters: Supporter[] }) {
+function Endorsements({ supporters: initialSupporters }: { supporters: Supporter[] }) {
+  const [supporters, setSupporters] = useState(initialSupporters);
   const [copiedHandle, setCopiedHandle] = useState<string | null>(null);
   const [expandedHandle, setExpandedHandle] = useState<string | null>(null);
   const [customMessages, setCustomMessages] = useState<Record<string, string>>({});
   
+  // Update supporters when prop changes
+  useEffect(() => {
+    setSupporters(initialSupporters);
+  }, [initialSupporters]);
+  
+  // Categorize supporters
   const endorsed = supporters.filter(s => s.quote);
-  const pending = supporters.filter(s => !s.quote);
+  const sent = supporters.filter(s => !s.quote && s.sent_at);
+  const notSent = supporters.filter(s => !s.quote && !s.sent_at);
   
   const getFirstName = (name: string) => {
-    // Handle special cases like "Dr. Aniruddha Malpani" -> "Dr. Malpani"
     if (name.startsWith("Dr. ")) {
       const parts = name.split(" ");
       return parts.length > 2 ? `Dr. ${parts[parts.length - 1]}` : name;
     }
-    // Handle "M S Mihir" -> "Mihir"
     if (name === "M S Mihir") return "Mihir";
-    // Handle "Besta Prem Sai" -> "Prem"
     if (name === "Besta Prem Sai") return "Prem";
-    // Default: first name
     return name.split(" ")[0];
   };
   
@@ -559,40 +564,173 @@ Thanks for supporting a young builder.
     setTimeout(() => setCopiedHandle(null), 2000);
   };
   
+  const markAsSent = async (handle: string) => {
+    try {
+      await fetch(`/api/supporters/${handle}/sent`, { method: 'POST' });
+      setSupporters(prev => prev.map(s => 
+        s.handle === handle ? { ...s, sent_at: new Date().toISOString() } : s
+      ));
+    } catch (e) {
+      console.error('Failed to mark as sent:', e);
+    }
+  };
+  
+  const unmarkAsSent = async (handle: string) => {
+    try {
+      await fetch(`/api/supporters/${handle}/sent`, { method: 'DELETE' });
+      setSupporters(prev => prev.map(s => 
+        s.handle === handle ? { ...s, sent_at: null } : s
+      ));
+    } catch (e) {
+      console.error('Failed to unmark as sent:', e);
+    }
+  };
+  
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "";
     const date = new Date(dateStr + "Z");
     return date.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
-      year: "numeric",
     });
   };
+
+  const SupporterCard = ({ s, showSentActions = false }: { s: Supporter; showSentActions?: boolean }) => (
+    <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+      {/* Header row */}
+      <div 
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--bg)]/50 transition-colors"
+        onClick={() => setExpandedHandle(expandedHandle === s.handle ? null : s.handle)}
+      >
+        <div className="flex items-center gap-3">
+          <svg 
+            className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${expandedHandle === s.handle ? 'rotate-90' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-[var(--text-primary)]">{s.name}</p>
+              {s.sent_at && (
+                <span className="text-xs text-emerald-400">Sent {formatDate(s.sent_at)}</span>
+              )}
+            </div>
+            <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {!s.sent_at && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                copyMessage(s);
+              }}
+              className="px-3 py-1 text-sm bg-[var(--accent)]/10 text-[var(--accent)] rounded hover:bg-[var(--accent)]/20 transition-colors"
+            >
+              {copiedHandle === s.handle ? "Copied!" : "Copy"}
+            </button>
+          )}
+          {!s.sent_at ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                markAsSent(s.handle);
+              }}
+              className="px-3 py-1 text-sm bg-emerald-500/10 text-emerald-400 rounded hover:bg-emerald-500/20 transition-colors"
+            >
+              Mark Sent
+            </button>
+          ) : showSentActions && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                unmarkAsSent(s.handle);
+              }}
+              className="px-3 py-1 text-sm text-[var(--text-muted)] hover:text-red-400 transition-colors"
+            >
+              Undo
+            </button>
+          )}
+        </div>
+      </div>
+      
+      {/* Expanded message */}
+      {expandedHandle === s.handle && (
+        <div className="px-4 pb-4 border-t border-[var(--border-subtle)]">
+          <textarea
+            value={getMessage(s)}
+            onChange={(e) => setCustomMessages(prev => ({ ...prev, [s.handle]: e.target.value }))}
+            className="w-full mt-3 p-3 bg-[var(--bg)] border border-[var(--border-subtle)] rounded text-sm text-[var(--text-primary)] font-mono leading-relaxed resize-none focus:outline-none focus:border-[var(--accent)]"
+            rows={12}
+          />
+          <div className="flex items-center justify-between mt-3">
+            <button
+              onClick={() => setCustomMessages(prev => {
+                const newMessages = { ...prev };
+                delete newMessages[s.handle];
+                return newMessages;
+              })}
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+            >
+              Reset to default
+            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => copyMessage(s)}
+                className="px-3 py-1.5 text-xs bg-[var(--accent)] text-[var(--bg)] rounded hover:opacity-90 transition-opacity"
+              >
+                {copiedHandle === s.handle ? "Copied!" : "Copy Message"}
+              </button>
+              {!s.sent_at && (
+                <button
+                  onClick={() => markAsSent(s.handle)}
+                  className="px-3 py-1.5 text-xs bg-emerald-500 text-[var(--bg)] rounded hover:opacity-90 transition-opacity"
+                >
+                  Mark as Sent
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       {/* Summary */}
-      <div className="mb-8">
-        <p className="text-[var(--text-secondary)]">
-          <span className="text-[var(--accent)] font-medium">{endorsed.length}</span> of {supporters.length} supporters have endorsed
-        </p>
+      <div className="mb-8 flex flex-wrap gap-4 text-sm">
+        <span className="text-[var(--text-secondary)]">
+          <span className="text-emerald-400 font-medium">{endorsed.length}</span> endorsed
+        </span>
+        <span className="text-[var(--border-subtle)]">•</span>
+        <span className="text-[var(--text-secondary)]">
+          <span className="text-[var(--accent)] font-medium">{sent.length}</span> sent, awaiting
+        </span>
+        <span className="text-[var(--border-subtle)]">•</span>
+        <span className="text-[var(--text-secondary)]">
+          <span className="text-[var(--text-primary)] font-medium">{notSent.length}</span> not sent
+        </span>
       </div>
 
       {/* Endorsed */}
       {endorsed.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
-            Received ({endorsed.length})
+          <h2 className="text-sm font-medium text-emerald-400 mb-4 uppercase tracking-wider">
+            Endorsed ({endorsed.length})
           </h2>
           <div className="space-y-3">
             {endorsed.map((s) => (
-              <div key={s.handle} className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-4">
+              <div key={s.handle} className="bg-[var(--bg-elevated)] border border-emerald-500/20 p-4">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <p className="text-[var(--text-primary)] font-medium">{s.name}</p>
                     <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
                   </div>
-                  <span className="text-xs text-[var(--text-muted)]">{formatDate(s.submitted_at)}</span>
+                  <span className="text-xs text-emerald-400">{formatDate(s.submitted_at)}</span>
                 </div>
                 <p className="text-[var(--text-secondary)] italic">"{s.quote}"</p>
               </div>
@@ -601,85 +739,29 @@ Thanks for supporting a young builder.
         </section>
       )}
 
-      {/* Pending */}
-      {pending.length > 0 && (
-        <section>
-          <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
-            Awaiting Response ({pending.length})
+      {/* Not Sent Yet */}
+      {notSent.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-sm font-medium text-[var(--text-primary)] mb-4 uppercase tracking-wider">
+            Not Sent Yet ({notSent.length})
           </h2>
           <div className="space-y-3">
-            {pending.map((s) => (
-              <div key={s.handle} className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
-                {/* Header row */}
-                <div 
-                  className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--bg)]/50 transition-colors"
-                  onClick={() => setExpandedHandle(expandedHandle === s.handle ? null : s.handle)}
-                >
-                  <div className="flex items-center gap-3">
-                    <svg 
-                      className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${expandedHandle === s.handle ? 'rotate-90' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    <div>
-                      <p className="text-[var(--text-primary)]">{s.name}</p>
-                      <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copyMessage(s);
-                    }}
-                    className="px-3 py-1 text-sm bg-[var(--accent)]/10 text-[var(--accent)] rounded hover:bg-[var(--accent)]/20 transition-colors"
-                  >
-                    {copiedHandle === s.handle ? "Copied!" : "Copy Message"}
-                  </button>
-                </div>
-                
-                {/* Expanded message */}
-                {expandedHandle === s.handle && (
-                  <div className="px-4 pb-4 border-t border-[var(--border-subtle)]">
-                    <textarea
-                      value={getMessage(s)}
-                      onChange={(e) => setCustomMessages(prev => ({ ...prev, [s.handle]: e.target.value }))}
-                      className="w-full mt-3 p-3 bg-[var(--bg)] border border-[var(--border-subtle)] rounded text-sm text-[var(--text-primary)] font-mono leading-relaxed resize-none focus:outline-none focus:border-[var(--accent)]"
-                      rows={12}
-                    />
-                    <div className="flex items-center justify-between mt-3">
-                      <button
-                        onClick={() => setCustomMessages(prev => {
-                          const newMessages = { ...prev };
-                          delete newMessages[s.handle];
-                          return newMessages;
-                        })}
-                        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                      >
-                        Reset to default
-                      </button>
-                      <div className="flex gap-2">
-                        <a
-                          href={`https://twitter.com/messages/compose?recipient_id=&text=${encodeURIComponent(getMessage(s))}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-                        >
-                          Open X DM
-                        </a>
-                        <button
-                          onClick={() => copyMessage(s)}
-                          className="px-3 py-1.5 text-xs bg-[var(--accent)] text-[var(--bg)] rounded hover:opacity-90 transition-opacity"
-                        >
-                          {copiedHandle === s.handle ? "Copied!" : "Copy"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {notSent.map((s) => (
+              <SupporterCard key={s.handle} s={s} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Sent, Awaiting Response */}
+      {sent.length > 0 && (
+        <section>
+          <h2 className="text-sm font-medium text-[var(--accent)] mb-4 uppercase tracking-wider">
+            Sent, Awaiting Response ({sent.length})
+          </h2>
+          <div className="space-y-3">
+            {sent.map((s) => (
+              <SupporterCard key={s.handle} s={s} showSentActions />
             ))}
           </div>
         </section>
