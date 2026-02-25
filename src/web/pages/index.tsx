@@ -276,6 +276,7 @@ interface PublicEndorsement {
 function Index() {
   const [supporterQuotes, setSupporterQuotes] = useState<Record<string, string>>({});
   const [publicEndorsements, setPublicEndorsements] = useState<PublicEndorsement[]>([]);
+  const [latestEndorsements, setLatestEndorsements] = useState<{quote: string; name: string}[]>([]);
   
   useEffect(() => {
     // Fetch supporter quotes from API
@@ -284,10 +285,17 @@ function Index() {
       .then((data) => {
         if (data.success && data.quotes) {
           const quotesMap: Record<string, string> = {};
-          data.quotes.forEach((q: { handle: string; quote: string }) => {
+          const supporterList: {quote: string; name: string}[] = [];
+          data.quotes.forEach((q: { handle: string; name: string; quote: string }) => {
             quotesMap[q.handle] = q.quote;
+            supporterList.push({ quote: q.quote, name: q.name });
           });
           setSupporterQuotes(quotesMap);
+          // Update latest endorsements with supporter quotes
+          setLatestEndorsements(prev => {
+            const combined = [...supporterList, ...prev.filter(e => !supporterList.find(s => s.name === e.name))];
+            return combined.slice(0, 6); // Keep latest 6 for smooth rotation
+          });
         }
       })
       .catch(() => {}); // Silent fail
@@ -298,6 +306,15 @@ function Index() {
       .then((data) => {
         if (data.success && data.endorsements) {
           setPublicEndorsements(data.endorsements);
+          const publicList = data.endorsements.map((e: PublicEndorsement) => ({
+            quote: e.quote,
+            name: e.name
+          }));
+          // Update latest endorsements with public ones
+          setLatestEndorsements(prev => {
+            const combined = [...prev.filter(e => !publicList.find((p: {name: string}) => p.name === e.name)), ...publicList];
+            return combined.slice(0, 6);
+          });
         }
       })
       .catch(() => {}); // Silent fail
@@ -347,13 +364,46 @@ function Index() {
               <p className="text-lg text-[var(--text-secondary)] mb-10">
                 Builds to learn.
               </p>
-              <nav className="flex flex-wrap gap-6 md:gap-8">
+              <nav className="flex flex-wrap gap-6 md:gap-8 mb-10">
                 <InternalLink href="/systems">Systems</InternalLink>
                 <InternalLink href="/impact">Impact</InternalLink>
                 <InternalLink href="/journey">Journey</InternalLink>
                 <InternalLink href="/venture">Venture</InternalLink>
                 <InternalLink href="/collaborate">Collaborate</InternalLink>
               </nav>
+              
+              {/* Endorsements Ticker */}
+              {latestEndorsements.length > 0 && (
+                <div className="relative overflow-hidden py-3 border-t border-[var(--border-subtle)]">
+                  <div className="endorsements-ticker flex gap-8 animate-ticker">
+                    {[...latestEndorsements, ...latestEndorsements].map((endorsement, index) => (
+                      <div 
+                        key={index} 
+                        className="flex-shrink-0 flex items-center gap-3 text-sm"
+                      >
+                        <span className="text-[var(--text-secondary)] italic max-w-[280px] truncate">
+                          "{endorsement.quote}"
+                        </span>
+                        <span className="text-[var(--text-muted)]">
+                          — {endorsement.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <style>{`
+                    @keyframes ticker {
+                      0% { transform: translateX(0); }
+                      100% { transform: translateX(-50%); }
+                    }
+                    .animate-ticker {
+                      animation: ticker 30s linear infinite;
+                    }
+                    .animate-ticker:hover {
+                      animation-play-state: paused;
+                    }
+                  `}</style>
+                </div>
+              )}
             </div>
             
             {/* Right side - Portrait */}
