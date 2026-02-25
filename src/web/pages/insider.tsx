@@ -400,12 +400,14 @@ function ShareEndorsements() {
   const [copied, setCopied] = useState(false);
   const endorseUrl = "https://lakshveer.com/endorse";
   
-  const shareMessage = `Meet Lakshveer - an 8-year-old hardware + AI builder from Hyderabad who's building real projects with Raspberry Pi, 3D printing, and AI.
+  const shareMessage = `Meet Lakshveer, an 8-year-old hardware + AI builder from Hyderabad, India who's building real projects — from games to learn electronics to builds that solve everyday problems. He's been on this build-to-learn journey since he was 4, backed by his father.
 
 If you've seen his work or believe in what he's doing, drop a quick endorsement here:
 ${endorseUrl}
 
-Takes 30 seconds. Your words mean a lot.`;
+Takes 30 seconds. Your words mean a lot.
+
+Explore all his work at lakshveer.com`;
 
   const copyToClipboard = async () => {
     try {
@@ -434,7 +436,7 @@ Takes 30 seconds. Your words mean a lot.`;
   };
 
   const shareTwitter = () => {
-    const tweetText = `Meet Lakshveer - an 8yo hardware + AI builder from Hyderabad building real projects with Raspberry Pi, 3D printing & AI. If you've seen his work, drop an endorsement:\n\n${endorseUrl}`;
+    const tweetText = `Meet Lakshveer, an 8yo hardware + AI builder from Hyderabad building real projects since age 4. If you've seen his work, drop an endorsement:\n\n${endorseUrl}\n\nExplore his work at lakshveer.com`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
   };
 
