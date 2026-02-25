@@ -266,8 +266,16 @@ const featuredEndorsements: FeaturedEndorsement[] = [
 // Twitter intent URL for public endorsements
 const ENDORSE_TWITTER_URL = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("I support @LakshveerRao's builder journey. \n\nlakshveer.com");
 
+interface PublicEndorsement {
+  name: string;
+  handle: string | null;
+  role: string | null;
+  quote: string;
+}
+
 function Index() {
   const [supporterQuotes, setSupporterQuotes] = useState<Record<string, string>>({});
+  const [publicEndorsements, setPublicEndorsements] = useState<PublicEndorsement[]>([]);
   
   useEffect(() => {
     // Fetch supporter quotes from API
@@ -280,6 +288,16 @@ function Index() {
             quotesMap[q.handle] = q.quote;
           });
           setSupporterQuotes(quotesMap);
+        }
+      })
+      .catch(() => {}); // Silent fail
+    
+    // Fetch public endorsements
+    fetch("/api/endorsements/public")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.endorsements) {
+          setPublicEndorsements(data.endorsements);
         }
       })
       .catch(() => {}); // Silent fail
@@ -541,6 +559,52 @@ function Index() {
             })}
           </div>
         </section>
+
+        {/* ========== COMMUNITY VOICES ========== */}
+        {publicEndorsements.length > 0 && (
+          <section className="mb-24 md:mb-32">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <h2 className="text-2xl md:text-3xl font-semibold">
+                Community Voices
+              </h2>
+              <a
+                href="/endorse"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors rounded-lg"
+              >
+                Add Your Voice →
+              </a>
+            </div>
+            <p className="text-[var(--text-secondary)] mb-10 max-w-2xl">
+              What others are saying about Laksh's work.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {publicEndorsements.map((endorsement, index) => (
+                <div
+                  key={index}
+                  className="p-5 bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
+                >
+                  <p className="text-[var(--text-secondary)] italic mb-4">
+                    "{endorsement.quote}"
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">
+                        {endorsement.name}
+                      </p>
+                      {(endorsement.handle || endorsement.role) && (
+                        <p className="text-xs text-[var(--text-muted)]">
+                          {endorsement.handle && `@${endorsement.handle.replace('@', '')}`}
+                          {endorsement.handle && endorsement.role && ' · '}
+                          {endorsement.role}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ========== IMMERSIVE LEARNING ========== */}
         <section className="mb-24 md:mb-32">
