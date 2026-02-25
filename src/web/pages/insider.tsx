@@ -400,7 +400,7 @@ function ShareEndorsements() {
   const [copied, setCopied] = useState(false);
   const endorseUrl = "https://lakshveer.com/endorse";
   
-  const shareMessage = `Meet Lakshveer, an 8-year-old hardware + AI builder from Hyderabad, India who's building real projects — from games to learn electronics to builds that solve everyday problems. He's been on this building journey since he was 4, backed by his father.
+  const shareMessage = `Meet Lakshveer, an 8-year-old hardware + AI builder from Hyderabad, India who's building real projects — from games to learn electronics to builds that solve everyday problems. He's been on this building journey since he was 4, backed by his father Capt. Venkat.
 
 If you've seen his work or believe in what he's doing, drop a quick endorsement here:
 ${endorseUrl}
