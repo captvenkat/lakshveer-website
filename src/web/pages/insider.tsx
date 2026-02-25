@@ -543,10 +543,10 @@ I'm adding a space on his website for supporters to leave a line. Totally option
 
 https://lakshveer.com/endorse/${s.token}
 
-Takes 30 seconds. Helps him land more hackathons, grants, and talks.
+Takes 30 seconds. Helps him land more building opportunities, hackathons, grants, and talks.
 
 Thanks for supporting a young builder.
-- Venkat`;
+- Capt Venkat`;
   };
   
   const getMessage = (s: Supporter) => {
