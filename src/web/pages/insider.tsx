@@ -512,15 +512,51 @@ function Messages({
 
 // Endorsements Tab
 function Endorsements({ supporters }: { supporters: Supporter[] }) {
-  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [copiedHandle, setCopiedHandle] = useState<string | null>(null);
+  const [expandedHandle, setExpandedHandle] = useState<string | null>(null);
+  const [customMessages, setCustomMessages] = useState<Record<string, string>>({});
   
   const endorsed = supporters.filter(s => s.quote);
   const pending = supporters.filter(s => !s.quote);
   
-  const copyLink = (token: string) => {
-    navigator.clipboard.writeText(`https://lakshveer.com/endorse/${token}`);
-    setCopiedToken(token);
-    setTimeout(() => setCopiedToken(null), 2000);
+  const getFirstName = (name: string) => {
+    // Handle special cases like "Dr. Aniruddha Malpani" -> "Dr. Malpani"
+    if (name.startsWith("Dr. ")) {
+      const parts = name.split(" ");
+      return parts.length > 2 ? `Dr. ${parts[parts.length - 1]}` : name;
+    }
+    // Handle "M S Mihir" -> "Mihir"
+    if (name === "M S Mihir") return "Mihir";
+    // Handle "Besta Prem Sai" -> "Prem"
+    if (name === "Besta Prem Sai") return "Prem";
+    // Default: first name
+    return name.split(" ")[0];
+  };
+  
+  const getDefaultMessage = (s: Supporter) => {
+    const firstName = getFirstName(s.name);
+    return `Hi ${firstName},
+
+You've been part of Laksh's journey - whether through advice, encouragement, or just watching him ship.
+
+I'm adding a space on his website for supporters to leave a line. Totally optional, but if something comes to mind:
+
+https://lakshveer.com/endorse/${s.token}
+
+Takes 30 seconds. Helps him land more hackathons, grants, and talks.
+
+Thanks for supporting a young builder.
+- Venkat`;
+  };
+  
+  const getMessage = (s: Supporter) => {
+    return customMessages[s.handle] ?? getDefaultMessage(s);
+  };
+  
+  const copyMessage = (s: Supporter) => {
+    navigator.clipboard.writeText(getMessage(s));
+    setCopiedHandle(s.handle);
+    setTimeout(() => setCopiedHandle(null), 2000);
   };
   
   const formatDate = (dateStr: string | null) => {
@@ -571,19 +607,78 @@ function Endorsements({ supporters }: { supporters: Supporter[] }) {
           <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
             Awaiting Response ({pending.length})
           </h2>
-          <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)]">
+          <div className="space-y-3">
             {pending.map((s) => (
-              <div key={s.handle} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-[var(--text-primary)]">{s.name}</p>
-                  <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
-                </div>
-                <button
-                  onClick={() => copyLink(s.token)}
-                  className="text-sm text-[var(--accent)] hover:underline"
+              <div key={s.handle} className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                {/* Header row */}
+                <div 
+                  className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--bg)]/50 transition-colors"
+                  onClick={() => setExpandedHandle(expandedHandle === s.handle ? null : s.handle)}
                 >
-                  {copiedToken === s.token ? "Copied" : "Copy Link"}
-                </button>
+                  <div className="flex items-center gap-3">
+                    <svg 
+                      className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${expandedHandle === s.handle ? 'rotate-90' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div>
+                      <p className="text-[var(--text-primary)]">{s.name}</p>
+                      <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyMessage(s);
+                    }}
+                    className="px-3 py-1 text-sm bg-[var(--accent)]/10 text-[var(--accent)] rounded hover:bg-[var(--accent)]/20 transition-colors"
+                  >
+                    {copiedHandle === s.handle ? "Copied!" : "Copy Message"}
+                  </button>
+                </div>
+                
+                {/* Expanded message */}
+                {expandedHandle === s.handle && (
+                  <div className="px-4 pb-4 border-t border-[var(--border-subtle)]">
+                    <textarea
+                      value={getMessage(s)}
+                      onChange={(e) => setCustomMessages(prev => ({ ...prev, [s.handle]: e.target.value }))}
+                      className="w-full mt-3 p-3 bg-[var(--bg)] border border-[var(--border-subtle)] rounded text-sm text-[var(--text-primary)] font-mono leading-relaxed resize-none focus:outline-none focus:border-[var(--accent)]"
+                      rows={12}
+                    />
+                    <div className="flex items-center justify-between mt-3">
+                      <button
+                        onClick={() => setCustomMessages(prev => {
+                          const newMessages = { ...prev };
+                          delete newMessages[s.handle];
+                          return newMessages;
+                        })}
+                        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                      >
+                        Reset to default
+                      </button>
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://twitter.com/messages/compose?recipient_id=&text=${encodeURIComponent(getMessage(s))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 text-xs bg-[var(--bg)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                        >
+                          Open X DM
+                        </a>
+                        <button
+                          onClick={() => copyMessage(s)}
+                          className="px-3 py-1.5 text-xs bg-[var(--accent)] text-[var(--bg)] rounded hover:opacity-90 transition-opacity"
+                        >
+                          {copiedHandle === s.handle ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
