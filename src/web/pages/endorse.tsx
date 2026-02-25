@@ -112,11 +112,11 @@ export default function EndorsePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-16">
-      <SEO title={`Endorse Laksh | ${supporter.name}`} />
+      <SEO title={`Endorse Lakshveer | ${supporter.name}`} />
       <div className="w-full max-w-lg px-6">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-semibold mb-2">
-            {supporter.hasQuote ? "Update Your Endorsement" : "Endorse Laksh"}
+            {supporter.hasQuote ? "Update Your Endorsement" : "Endorse Lakshveer"}
           </h1>
           <p className="text-[var(--text-secondary)]">
             Hi {supporter.name.split(' ')[0]}, add a line about Laksh's work.

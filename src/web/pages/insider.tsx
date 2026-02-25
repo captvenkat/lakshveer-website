@@ -12,6 +12,14 @@ interface Submission {
   read: number;
 }
 
+interface Supporter {
+  handle: string;
+  name: string;
+  token: string;
+  quote: string | null;
+  submitted_at: string | null;
+}
+
 interface Stats {
   total: number;
   unread: number;
@@ -30,7 +38,7 @@ const categoryLabels: Record<string, string> = {
   other: "Other",
 };
 
-type Tab = "overview" | "messages";
+type Tab = "overview" | "messages" | "endorsements";
 
 const PASSWORD = "insidenagole";
 
@@ -42,6 +50,7 @@ function Insider() {
   const [tab, setTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [selected, setSelected] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +64,7 @@ function Insider() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      Promise.all([fetchStats(), fetchSubmissions()]).then(() => setLoading(false));
+      Promise.all([fetchStats(), fetchSubmissions(), fetchSupporters()]).then(() => setLoading(false));
     }
   }, [isAuthenticated]);
 
@@ -93,6 +102,16 @@ function Insider() {
       if (data.success) setSubmissions(data.submissions);
     } catch (e) {
       console.error("Failed to fetch submissions:", e);
+    }
+  };
+
+  const fetchSupporters = async () => {
+    try {
+      const res = await fetch("/api/supporters/admin");
+      const data = await res.json();
+      if (data.success) setSupporters(data.supporters);
+    } catch (e) {
+      console.error("Failed to fetch supporters:", e);
     }
   };
 
@@ -200,7 +219,7 @@ function Insider() {
 
           {/* Tabs */}
           <div className="flex gap-1">
-            {(["overview", "messages"] as Tab[]).map((t) => (
+            {(["overview", "messages", "endorsements"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => {
@@ -213,10 +232,15 @@ function Insider() {
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                {t === "overview" ? "Overview" : "Messages"}
+                {t === "overview" ? "Overview" : t === "messages" ? "Messages" : "Endorsements"}
                 {t === "messages" && stats && stats.unread > 0 && (
                   <span className="ml-2 px-1.5 py-0.5 text-xs bg-[var(--accent)] text-[var(--bg)] rounded-full">
                     {stats.unread}
+                  </span>
+                )}
+                {t === "endorsements" && supporters.filter(s => s.quote).length > 0 && (
+                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-emerald-500 text-[var(--bg)] rounded-full">
+                    {supporters.filter(s => s.quote).length}
                   </span>
                 )}
               </button>
@@ -227,7 +251,7 @@ function Insider() {
 
       {/* Content */}
       <main>
-        {tab === "overview" && stats && <Overview stats={stats} onViewMessages={() => setTab("messages")} />}
+        {tab === "overview" && stats && <Overview stats={stats} supporters={supporters} onViewMessages={() => setTab("messages")} onViewEndorsements={() => setTab("endorsements")} />}
         {tab === "messages" && (
           <Messages
             submissions={submissions}
@@ -240,21 +264,25 @@ function Insider() {
             formatDate={formatDate}
           />
         )}
+        {tab === "endorsements" && <Endorsements supporters={supporters} />}
       </main>
     </div>
   );
 }
 
 // Overview Tab
-function Overview({ stats, onViewMessages }: { stats: Stats; onViewMessages: () => void }) {
+function Overview({ stats, supporters, onViewMessages, onViewEndorsements }: { stats: Stats; supporters: Supporter[]; onViewMessages: () => void; onViewEndorsements: () => void }) {
+  const endorsedCount = supporters.filter(s => s.quote).length;
+  const pendingCount = supporters.length - endorsedCount;
+  
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Total Messages" value={stats.total} />
         <StatCard label="Unread" value={stats.unread} highlight={stats.unread > 0} />
-        <StatCard label="This Week" value={stats.thisWeek} />
-        <StatCard label="This Month" value={stats.thisMonth} />
+        <StatCard label="Endorsements" value={endorsedCount} highlight={endorsedCount > 0} />
+        <StatCard label="Pending" value={pendingCount} />
       </div>
 
       {/* Category Breakdown */}
@@ -307,13 +335,20 @@ function Overview({ stats, onViewMessages }: { stats: Stats; onViewMessages: () 
         <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <button
             onClick={onViewMessages}
             className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-left hover:border-[var(--accent)] transition-colors"
           >
             <p className="text-[var(--text-primary)] font-medium">View Messages</p>
             <p className="text-sm text-[var(--text-secondary)]">Read and respond to inquiries</p>
+          </button>
+          <button
+            onClick={onViewEndorsements}
+            className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-left hover:border-[var(--accent)] transition-colors"
+          >
+            <p className="text-[var(--text-primary)] font-medium">View Endorsements</p>
+            <p className="text-sm text-[var(--text-secondary)]">Manage supporter quotes</p>
           </button>
           <a
             href="/"
@@ -471,6 +506,89 @@ function Messages({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Endorsements Tab
+function Endorsements({ supporters }: { supporters: Supporter[] }) {
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  
+  const endorsed = supporters.filter(s => s.quote);
+  const pending = supporters.filter(s => !s.quote);
+  
+  const copyLink = (token: string) => {
+    navigator.clipboard.writeText(`https://lakshveer.com/endorse/${token}`);
+    setCopiedToken(token);
+    setTimeout(() => setCopiedToken(null), 2000);
+  };
+  
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "Z");
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+      {/* Summary */}
+      <div className="mb-8">
+        <p className="text-[var(--text-secondary)]">
+          <span className="text-[var(--accent)] font-medium">{endorsed.length}</span> of {supporters.length} supporters have endorsed
+        </p>
+      </div>
+
+      {/* Endorsed */}
+      {endorsed.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
+            Received ({endorsed.length})
+          </h2>
+          <div className="space-y-3">
+            {endorsed.map((s) => (
+              <div key={s.handle} className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-4">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <p className="text-[var(--text-primary)] font-medium">{s.name}</p>
+                    <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
+                  </div>
+                  <span className="text-xs text-[var(--text-muted)]">{formatDate(s.submitted_at)}</span>
+                </div>
+                <p className="text-[var(--text-secondary)] italic">"{s.quote}"</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Pending */}
+      {pending.length > 0 && (
+        <section>
+          <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-4 uppercase tracking-wider">
+            Awaiting Response ({pending.length})
+          </h2>
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)]">
+            {pending.map((s) => (
+              <div key={s.handle} className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <p className="text-[var(--text-primary)]">{s.name}</p>
+                  <p className="text-sm text-[var(--text-muted)]">@{s.handle}</p>
+                </div>
+                <button
+                  onClick={() => copyLink(s.token)}
+                  className="text-sm text-[var(--accent)] hover:underline"
+                >
+                  {copiedToken === s.token ? "Copied" : "Copy Link"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
