@@ -18,9 +18,7 @@ export function Header({ showBackLink = true }: HeaderProps) {
         {/* Nav Links */}
         <nav className="flex items-center gap-4 md:gap-6">
           <a 
-            href="https://twitter.com/intent/tweet?text=Watching%20%40IamLakshveer%20build%20is%20inspiring.%20At%208%2C%20he's%20shipping%20real%20hardware%20%2B%20AI%20projects.%20Check%20his%20work%3A%20lakshveer.com"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/endorse"
             className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-150"
           >
             Endorse

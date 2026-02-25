@@ -21,6 +21,16 @@ interface Supporter {
   sent_at: string | null;
 }
 
+interface PublicEndorsement {
+  id: number;
+  name: string;
+  handle: string | null;
+  role: string | null;
+  quote: string;
+  approved: number;
+  created_at: string;
+}
+
 interface Stats {
   total: number;
   unread: number;
@@ -39,7 +49,7 @@ const categoryLabels: Record<string, string> = {
   other: "Other",
 };
 
-type Tab = "overview" | "messages" | "endorsements";
+type Tab = "overview" | "messages" | "endorsements" | "public";
 
 const PASSWORD = "insidenagole";
 
@@ -52,6 +62,7 @@ function Insider() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [supporters, setSupporters] = useState<Supporter[]>([]);
+  const [publicEndorsements, setPublicEndorsements] = useState<PublicEndorsement[]>([]);
   const [selected, setSelected] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +76,7 @@ function Insider() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      Promise.all([fetchStats(), fetchSubmissions(), fetchSupporters()]).then(() => setLoading(false));
+      Promise.all([fetchStats(), fetchSubmissions(), fetchSupporters(), fetchPublicEndorsements()]).then(() => setLoading(false));
     }
   }, [isAuthenticated]);
 
@@ -113,6 +124,16 @@ function Insider() {
       if (data.success) setSupporters(data.supporters);
     } catch (e) {
       console.error("Failed to fetch supporters:", e);
+    }
+  };
+
+  const fetchPublicEndorsements = async () => {
+    try {
+      const res = await fetch("/api/endorsements/admin");
+      const data = await res.json();
+      if (data.success) setPublicEndorsements(data.endorsements);
+    } catch (e) {
+      console.error("Failed to fetch public endorsements:", e);
     }
   };
 
@@ -219,21 +240,21 @@ function Insider() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1">
-            {(["overview", "messages", "endorsements"] as Tab[]).map((t) => (
+          <div className="flex gap-1 overflow-x-auto">
+            {(["overview", "messages", "endorsements", "public"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => {
                   setTab(t);
                   setSelected(null);
                 }}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
                   tab === t
                     ? "text-[var(--text-primary)] border-b-2 border-[var(--accent)]"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                {t === "overview" ? "Overview" : t === "messages" ? "Messages" : "Endorsements"}
+                {t === "overview" ? "Overview" : t === "messages" ? "Messages" : t === "endorsements" ? "Supporters" : "Public"}
                 {t === "messages" && stats && stats.unread > 0 && (
                   <span className="ml-2 px-1.5 py-0.5 text-xs bg-[var(--accent)] text-[var(--bg)] rounded-full">
                     {stats.unread}
@@ -244,6 +265,11 @@ function Insider() {
                     {supporters.filter(s => s.quote).length}
                   </span>
                 )}
+                {t === "public" && publicEndorsements.filter(e => !e.approved).length > 0 && (
+                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-amber-500 text-[var(--bg)] rounded-full">
+                    {publicEndorsements.filter(e => !e.approved).length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -252,7 +278,7 @@ function Insider() {
 
       {/* Content */}
       <main>
-        {tab === "overview" && stats && <Overview stats={stats} supporters={supporters} onViewMessages={() => setTab("messages")} onViewEndorsements={() => setTab("endorsements")} />}
+        {tab === "overview" && stats && <Overview stats={stats} supporters={supporters} publicEndorsements={publicEndorsements} onViewMessages={() => setTab("messages")} onViewEndorsements={() => setTab("endorsements")} />}
         {tab === "messages" && (
           <Messages
             submissions={submissions}
@@ -266,24 +292,25 @@ function Insider() {
           />
         )}
         {tab === "endorsements" && <Endorsements supporters={supporters} />}
+        {tab === "public" && <PublicEndorsementsTab endorsements={publicEndorsements} setEndorsements={setPublicEndorsements} />}
       </main>
     </div>
   );
 }
 
 // Overview Tab
-function Overview({ stats, supporters, onViewMessages, onViewEndorsements }: { stats: Stats; supporters: Supporter[]; onViewMessages: () => void; onViewEndorsements: () => void }) {
+function Overview({ stats, supporters, publicEndorsements, onViewMessages, onViewEndorsements }: { stats: Stats; supporters: Supporter[]; publicEndorsements: PublicEndorsement[]; onViewMessages: () => void; onViewEndorsements: () => void }) {
   const endorsedCount = supporters.filter(s => s.quote).length;
-  const pendingCount = supporters.length - endorsedCount;
+  const pendingPublic = publicEndorsements.filter(e => !e.approved).length;
   
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Messages" value={stats.total} />
+        <StatCard label="Messages" value={stats.total} />
         <StatCard label="Unread" value={stats.unread} highlight={stats.unread > 0} />
-        <StatCard label="Endorsements" value={endorsedCount} highlight={endorsedCount > 0} />
-        <StatCard label="Pending" value={pendingCount} />
+        <StatCard label="Supporter Quotes" value={endorsedCount} highlight={endorsedCount > 0} />
+        <StatCard label="Pending Review" value={pendingPublic} highlight={pendingPublic > 0} />
       </div>
 
       {/* Category Breakdown */}
@@ -765,6 +792,146 @@ Thanks for supporting a young builder.
             ))}
           </div>
         </section>
+      )}
+    </div>
+  );
+}
+
+// Public Endorsements Tab (moderation)
+function PublicEndorsementsTab({ 
+  endorsements, 
+  setEndorsements 
+}: { 
+  endorsements: PublicEndorsement[]; 
+  setEndorsements: React.Dispatch<React.SetStateAction<PublicEndorsement[]>>;
+}) {
+  const pending = endorsements.filter(e => !e.approved);
+  const approved = endorsements.filter(e => e.approved);
+  
+  const approveEndorsement = async (id: number) => {
+    try {
+      await fetch(`/api/endorsements/${id}/approve`, { method: 'POST' });
+      setEndorsements(prev => prev.map(e => 
+        e.id === id ? { ...e, approved: 1 } : e
+      ));
+    } catch (e) {
+      console.error('Failed to approve:', e);
+    }
+  };
+  
+  const deleteEndorsement = async (id: number) => {
+    if (!confirm('Delete this endorsement?')) return;
+    try {
+      await fetch(`/api/endorsements/${id}`, { method: 'DELETE' });
+      setEndorsements(prev => prev.filter(e => e.id !== id));
+    } catch (e) {
+      console.error('Failed to delete:', e);
+    }
+  };
+  
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr + "Z");
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+    });
+  };
+
+  const EndorsementCard = ({ e, showApprove = false }: { e: PublicEndorsement; showApprove?: boolean }) => (
+    <div className={`bg-[var(--bg-elevated)] border ${showApprove ? 'border-amber-500/30' : 'border-emerald-500/20'} p-4`}>
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div>
+          <p className="text-[var(--text-primary)] font-medium">{e.name}</p>
+          <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+            {e.handle && <span>@{e.handle.replace('@', '')}</span>}
+            {e.role && <span>• {e.role}</span>}
+          </div>
+        </div>
+        <span className="text-xs text-[var(--text-muted)]">{formatDate(e.created_at)}</span>
+      </div>
+      <p className="text-[var(--text-secondary)] italic mb-4">"{e.quote}"</p>
+      <div className="flex gap-2">
+        {showApprove && (
+          <button
+            onClick={() => approveEndorsement(e.id)}
+            className="px-3 py-1.5 text-xs bg-emerald-500 text-[var(--bg)] rounded hover:opacity-90 transition-opacity"
+          >
+            Approve
+          </button>
+        )}
+        <button
+          onClick={() => deleteEndorsement(e.id)}
+          className="px-3 py-1.5 text-xs border border-[var(--border-subtle)] text-[var(--text-muted)] rounded hover:text-red-400 hover:border-red-400 transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+      {/* Share link */}
+      <div className="mb-8 p-4 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg">
+        <p className="text-sm text-[var(--text-secondary)] mb-2">Public endorsement link:</p>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 px-3 py-2 bg-[var(--bg)] text-[var(--accent)] text-sm rounded">
+            https://lakshveer.com/endorse
+          </code>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText('https://lakshveer.com/endorse');
+            }}
+            className="px-3 py-2 text-sm bg-[var(--accent)]/10 text-[var(--accent)] rounded hover:bg-[var(--accent)]/20 transition-colors"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="mb-8 flex flex-wrap gap-4 text-sm">
+        <span className="text-[var(--text-secondary)]">
+          <span className="text-amber-400 font-medium">{pending.length}</span> pending review
+        </span>
+        <span className="text-[var(--border-subtle)]">•</span>
+        <span className="text-[var(--text-secondary)]">
+          <span className="text-emerald-400 font-medium">{approved.length}</span> approved
+        </span>
+      </div>
+
+      {/* Pending */}
+      {pending.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-sm font-medium text-amber-400 mb-4 uppercase tracking-wider">
+            Pending Review ({pending.length})
+          </h2>
+          <div className="space-y-3">
+            {pending.map((e) => (
+              <EndorsementCard key={e.id} e={e} showApprove />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Approved */}
+      {approved.length > 0 && (
+        <section>
+          <h2 className="text-sm font-medium text-emerald-400 mb-4 uppercase tracking-wider">
+            Approved ({approved.length})
+          </h2>
+          <div className="space-y-3">
+            {approved.map((e) => (
+              <EndorsementCard key={e.id} e={e} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {endorsements.length === 0 && (
+        <div className="text-center py-12 text-[var(--text-muted)]">
+          No public endorsements yet. Share the link above to collect endorsements.
+        </div>
       )}
     </div>
   );

@@ -294,9 +294,7 @@ function Index() {
         <div className="container-main py-3">
           <div className="flex items-center justify-center gap-6 md:gap-8 text-sm">
             <a 
-              href="https://twitter.com/intent/tweet?text=Watching%20%40IamLakshveer%20build%20is%20inspiring.%20At%208%2C%20he's%20shipping%20real%20hardware%20%2B%20AI%20projects.%20Check%20his%20work%3A%20lakshveer.com"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/endorse"
               className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
             >
               Endorse

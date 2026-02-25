@@ -677,4 +677,95 @@ app.delete('/supporters/:handle/sent', async (c) => {
   }
 });
 
+// ========== PUBLIC ENDORSEMENTS ==========
+
+// Submit a public endorsement (anyone can submit)
+app.post('/endorsements/public', async (c) => {
+  try {
+    const { name, handle, role, quote } = await c.req.json();
+    
+    if (!name || !quote) {
+      return c.json({ success: false, error: 'Name and quote are required' }, 400);
+    }
+    
+    if (quote.length > 280) {
+      return c.json({ success: false, error: 'Quote must be 280 characters or less' }, 400);
+    }
+    
+    await c.env.DB.prepare(
+      `INSERT INTO public_endorsements (name, handle, role, quote) VALUES (?, ?, ?, ?)`
+    ).bind(name, handle || null, role || null, quote).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Public endorsement error:', error);
+    return c.json({ success: false, error: 'Failed to submit endorsement' }, 500);
+  }
+});
+
+// Get approved public endorsements (for homepage)
+app.get('/endorsements/public', async (c) => {
+  try {
+    const results = await c.env.DB.prepare(
+      `SELECT name, handle, role, quote, created_at FROM public_endorsements WHERE approved = 1 ORDER BY created_at DESC`
+    ).all();
+    
+    return c.json({
+      success: true,
+      endorsements: results.results || []
+    });
+  } catch (error) {
+    console.error('Fetch public endorsements error:', error);
+    return c.json({ success: false, error: 'Failed to fetch endorsements' }, 500);
+  }
+});
+
+// Admin: Get all public endorsements (pending + approved)
+app.get('/endorsements/admin', async (c) => {
+  try {
+    const results = await c.env.DB.prepare(
+      `SELECT id, name, handle, role, quote, approved, created_at FROM public_endorsements ORDER BY created_at DESC`
+    ).all();
+    
+    return c.json({
+      success: true,
+      endorsements: results.results || []
+    });
+  } catch (error) {
+    console.error('Admin fetch endorsements error:', error);
+    return c.json({ success: false, error: 'Failed to fetch endorsements' }, 500);
+  }
+});
+
+// Admin: Approve/reject endorsement
+app.post('/endorsements/:id/approve', async (c) => {
+  try {
+    const { id } = c.req.param();
+    
+    await c.env.DB.prepare(
+      `UPDATE public_endorsements SET approved = 1 WHERE id = ?`
+    ).bind(id).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Approve error:', error);
+    return c.json({ success: false, error: 'Failed to approve' }, 500);
+  }
+});
+
+app.delete('/endorsements/:id', async (c) => {
+  try {
+    const { id } = c.req.param();
+    
+    await c.env.DB.prepare(
+      `DELETE FROM public_endorsements WHERE id = ?`
+    ).bind(id).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Delete error:', error);
+    return c.json({ success: false, error: 'Failed to delete' }, 500);
+  }
+});
+
 export default app;

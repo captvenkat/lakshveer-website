@@ -12,6 +12,7 @@ import Share from "./pages/share";
 import Invite from "./pages/invite";
 import Press from "./pages/press";
 import Endorse from "./pages/endorse";
+import EndorsePublic from "./pages/endorse-public";
 import { Provider } from "./components/provider";
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
                                 <Route path="/share" component={Share} />
                                 <Route path="/invite" component={Invite} />
                                 <Route path="/press" component={Press} />
+                                <Route path="/endorse" component={EndorsePublic} />
                                 <Route path="/endorse/:token" component={Endorse} />
                         </Switch>
                 </Provider>
