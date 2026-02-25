@@ -304,7 +304,7 @@ function Overview({ stats, supporters, publicEndorsements, onViewMessages, onVie
   const pendingPublic = publicEndorsements.filter(e => !e.approved).length;
   
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto pb-16">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Messages" value={stats.total} />
@@ -400,7 +400,7 @@ function ShareEndorsements() {
   const [copied, setCopied] = useState(false);
   const endorseUrl = "https://lakshveer.com/endorse";
   
-  const shareMessage = `Meet Lakshveer, an 8-year-old hardware + AI builder from Hyderabad, India who's building real projects — from games to learn electronics to builds that solve everyday problems. He's been on this build-to-learn journey since he was 4, backed by his father.
+  const shareMessage = `Meet Lakshveer, an 8-year-old hardware + AI builder from Hyderabad, India who's building real projects — from games to learn electronics to builds that solve everyday problems. He's been on this building journey since he was 4, backed by his father.
 
 If you've seen his work or believe in what he's doing, drop a quick endorsement here:
 ${endorseUrl}
@@ -455,7 +455,7 @@ Explore all his work at lakshveer.com`;
         Share & Get Endorsements
       </h2>
       
-      <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] p-4 md:p-6">
+      <div className="bg-[var(--bg-elevated)] border-2 border-[var(--accent)]/30 p-4 md:p-6">
         {/* Pre-written message */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
