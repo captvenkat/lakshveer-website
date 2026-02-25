@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { SEO } from "@/components/seo";
 import { Header } from "@/components/header";
+import { ShareEndorsementModal, EndorsementShareButton } from "@/components/share-endorsement-modal";
 
 interface Mention {
   author: string;
@@ -296,6 +297,12 @@ const authorTypeLabels: Record<string, string> = {
 function Recognition() {
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [shareModalData, setShareModalData] = useState<{
+    isOpen: boolean;
+    quote: string;
+    name: string;
+    handle?: string | null;
+  }>({ isOpen: false, quote: "", name: "" });
   
   const themes = useMemo(() => extractThemes(mentions), []);
   
@@ -391,17 +398,21 @@ function Recognition() {
         {/* Mentions */}
         <div className="space-y-0">
           {filteredMentions.map((mention, idx) => (
-            <a
+            <div
               key={`${mention.author}-${idx}`}
-              href={mention.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group block py-6 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors duration-150 -mx-4 px-4"
+              className="group py-6 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors duration-150 -mx-4 px-4"
             >
               {/* Quote */}
-              <p className="text-lg md:text-xl leading-relaxed mb-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors duration-150">
-                "{mention.quote}"
-              </p>
+              <a
+                href={mention.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <p className="text-lg md:text-xl leading-relaxed mb-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors duration-150">
+                  "{mention.quote}"
+                </p>
+              </a>
               
               {/* Attribution */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -417,11 +428,31 @@ function Recognition() {
                 <span className="text-sm text-[var(--text-muted)]">
                   — {mention.context}
                 </span>
-                <span className="ml-auto text-sm text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                  View on X ↗
-                </span>
+                <div className="ml-auto flex items-center gap-2">
+                  <EndorsementShareButton
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShareModalData({
+                        isOpen: true,
+                        quote: mention.quote,
+                        name: mention.authorName,
+                        handle: mention.author,
+                      });
+                    }}
+                    className="opacity-100 sm:opacity-0"
+                  />
+                  <a 
+                    href={mention.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  >
+                    View ↗
+                  </a>
+                </div>
               </div>
-            </a>
+            </div>
           ))}
         </div>
         
@@ -447,6 +478,15 @@ function Recognition() {
           </div>
         </div>
       </main>
+      
+      {/* Share Endorsement Modal */}
+      <ShareEndorsementModal
+        isOpen={shareModalData.isOpen}
+        onClose={() => setShareModalData(prev => ({ ...prev, isOpen: false }))}
+        quote={shareModalData.quote}
+        name={shareModalData.name}
+        handle={shareModalData.handle}
+      />
     </div>
   );
 }

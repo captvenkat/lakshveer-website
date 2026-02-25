@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { SEO, PAGE_TITLES } from "@/components/seo";
 import { ShareMenu } from "@/components/share-menu";
 import { AnimatedCounter, parseStatValue } from "@/components/animated-counter";
+import { ShareEndorsementModal, EndorsementShareButton } from "@/components/share-endorsement-modal";
 
 interface LinkProps {
   href: string;
@@ -277,6 +278,14 @@ function Index() {
   const [supporterQuotes, setSupporterQuotes] = useState<Record<string, string>>({});
   const [publicEndorsements, setPublicEndorsements] = useState<PublicEndorsement[]>([]);
   const [latestEndorsements, setLatestEndorsements] = useState<{quote: string; name: string}[]>([]);
+  const [shareModalData, setShareModalData] = useState<{
+    isOpen: boolean;
+    quote: string;
+    name: string;
+    handle?: string | null;
+    role?: string | null;
+    organisation?: string | null;
+  }>({ isOpen: false, quote: "", name: "" });
   
   useEffect(() => {
     // Fetch supporter quotes from API
@@ -462,21 +471,28 @@ function Index() {
             href="/universe"
             className="group block relative overflow-hidden border border-[var(--border-subtle)] hover:border-[var(--accent)]/50 transition-all duration-300 bg-[#050508]"
           >
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row md:min-h-[280px]">
               {/* Left side - Screenshot preview */}
-              <div className="relative w-full md:w-1/2 h-48 md:h-auto overflow-hidden">
+              <div className="relative w-full md:w-1/2 h-56 md:h-auto min-h-[240px] overflow-hidden flex items-center justify-center">
                 <img 
                   src="./universe-preview.png" 
                   alt="Lakshveer's Learning Universe - Interactive knowledge graph"
-                  className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                  className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 transition-opacity duration-500 animate-slow-pan"
                 />
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#050508] md:block hidden" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-transparent md:hidden" />
+                {/* Floating particles animation overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute w-1 h-1 rounded-full bg-cyan-400/60 animate-float-1" style={{ top: '20%', left: '30%' }} />
+                  <div className="absolute w-1.5 h-1.5 rounded-full bg-purple-400/60 animate-float-2" style={{ top: '60%', left: '20%' }} />
+                  <div className="absolute w-1 h-1 rounded-full bg-amber-400/60 animate-float-3" style={{ top: '40%', left: '70%' }} />
+                  <div className="absolute w-1 h-1 rounded-full bg-emerald-400/60 animate-float-1" style={{ top: '70%', left: '60%' }} />
+                </div>
               </div>
               
               {/* Right side - Content */}
-              <div className="relative flex-1 px-6 py-8 md:px-10 md:py-10">
+              <div className="relative flex-1 px-6 py-8 md:px-10 md:py-10 flex flex-col justify-center">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
                   Explore Lakshveer's Learning Universe
                 </h2>
@@ -853,7 +869,7 @@ function Index() {
             {featuredEndorsements.map((endorsement) => (
               <article 
                 key={endorsement.slug}
-                className="py-8 border-b border-[var(--border-subtle)] last:border-b-0"
+                className="group py-8 border-b border-[var(--border-subtle)] last:border-b-0"
               >
                 {/* Quote - displayed as paragraph, no quotation marks */}
                 <p className="text-lg text-[var(--text-primary)] leading-relaxed mb-6">
@@ -871,17 +887,32 @@ function Index() {
                     </p>
                   </div>
                   
-                  {/* Proof link */}
-                  {endorsement.proofUrl && (
-                    <a 
-                      href={endorsement.proofUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
-                    >
-                      Watch Video ↗
-                    </a>
-                  )}
+                  {/* Actions */}
+                  <div className="flex items-center gap-3">
+                    <EndorsementShareButton 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShareModalData({
+                          isOpen: true,
+                          quote: endorsement.quote,
+                          name: endorsement.name,
+                          role: endorsement.role,
+                          organisation: endorsement.organisation,
+                        });
+                      }}
+                      className="opacity-100 sm:opacity-0"
+                    />
+                    {endorsement.proofUrl && (
+                      <a 
+                        href={endorsement.proofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity duration-150"
+                      >
+                        Watch Video ↗
+                      </a>
+                    )}
+                  </div>
                 </div>
               </article>
             ))}
@@ -978,6 +1009,17 @@ function Index() {
           </div>
         </div>
       </footer>
+      
+      {/* Share Endorsement Modal */}
+      <ShareEndorsementModal
+        isOpen={shareModalData.isOpen}
+        onClose={() => setShareModalData(prev => ({ ...prev, isOpen: false }))}
+        quote={shareModalData.quote}
+        name={shareModalData.name}
+        handle={shareModalData.handle}
+        role={shareModalData.role}
+        organisation={shareModalData.organisation}
+      />
     </div>
   );
 }

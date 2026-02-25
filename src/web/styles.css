@@ -285,3 +285,99 @@
     opacity: 0;
   }
 }
+
+/* Universe teaser animations */
+@keyframes slowPulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes float1 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(10px, -15px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(5px, -25px);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(-5px, -10px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes float2 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+  33% {
+    transform: translate(-15px, -20px);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate(-10px, 10px);
+    opacity: 0.4;
+  }
+}
+
+@keyframes float3 {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(20px, -30px);
+    opacity: 0.3;
+  }
+}
+
+.animate-slow-pulse {
+  animation: slowPulse 4s ease-in-out infinite;
+}
+
+.animate-float-1 {
+  animation: float1 6s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float2 8s ease-in-out infinite;
+}
+
+.animate-float-3 {
+  animation: float3 7s ease-in-out infinite;
+}
+
+/* Universe teaser slow pan animation */
+@keyframes slowPan {
+  0% {
+    transform: scale(1.08) translate(0%, 0%);
+  }
+  25% {
+    transform: scale(1.12) translate(-1%, -1%);
+  }
+  50% {
+    transform: scale(1.08) translate(0%, -2%);
+  }
+  75% {
+    transform: scale(1.12) translate(1%, -1%);
+  }
+  100% {
+    transform: scale(1.08) translate(0%, 0%);
+  }
+}
+
+.animate-slow-pan {
+  animation: slowPan 20s ease-in-out infinite;
+}
