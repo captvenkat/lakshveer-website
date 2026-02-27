@@ -33,6 +33,11 @@ import {
   type MomentumMetrics,
   type EnhancedEdge,
 } from "@/data/universe-intelligence";
+import { useNodeDetail, useClusters, isPrivateMode, setPrivateMode, type NodeDetailResponse, type EnrichedCluster } from "@/hooks/useUniverseAPI";
+import { NodeWorldPanel } from "@/components/NodeWorldPanel";
+import { ClusterScoreCard } from "@/components/ClusterScoreCard";
+import { VerificationDashboard } from "@/components/VerificationDashboard";
+import { GapsOpportunitiesPanel } from "@/components/GapsOpportunitiesPanel";
 
 // ============================================
 // TYPES
@@ -46,6 +51,7 @@ interface SimNode extends UniverseNode {
   fx?: number | null;
   fy?: number | null;
   visible?: boolean;
+  verification_status?: 'verified' | 'pending' | 'inferred' | 'rejected';
 }
 
 interface SimEdge {
@@ -54,6 +60,8 @@ interface SimEdge {
   relation: string;
   weight?: number;
   evolutionType?: string;
+  verification_status?: 'verified' | 'pending' | 'inferred' | 'rejected';
+  confidence_score?: number;
 }
 
 type ViewMode = 'explore' | 'clusters' | 'timeline' | 'momentum';
@@ -151,6 +159,41 @@ function Universe() {
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [linkCopied, setLinkCopied] = useState(false);
+  
+  // Phase 2: API State
+  const [privateMode, setPrivateModeState] = useState(isPrivateMode());
+  const [expandedCluster, setExpandedCluster] = useState<string | null>(null);
+  const { loading: nodeLoading, nodeData, loadNode, clearNode } = useNodeDetail();
+  const { loading: clustersLoading, clusters: apiClusters, loadClusters } = useClusters();
+  
+  // Phase 3: Verification Dashboard
+  const [showVerificationDashboard, setShowVerificationDashboard] = useState(false);
+  
+  // Phase 4: Gaps & Opportunities Panel
+  const [showGapsPanel, setShowGapsPanel] = useState(false);
+  
+  // Toggle private mode
+  const togglePrivateMode = useCallback(() => {
+    const newMode = !privateMode;
+    setPrivateModeState(newMode);
+    setPrivateMode(newMode);
+    // Reload clusters to get score breakdown
+    loadClusters();
+  }, [privateMode, loadClusters]);
+  
+  // Load API data on mount
+  useEffect(() => {
+    loadClusters();
+  }, []);
+  
+  // Load node detail when selected
+  useEffect(() => {
+    if (selectedNode) {
+      loadNode(selectedNode.id);
+    } else {
+      clearNode();
+    }
+  }, [selectedNode?.id]);
   
   // Computed data
   const momentum = useMemo(() => calculateMomentum(), []);
@@ -411,6 +454,11 @@ function Universe() {
       
       const isIntelligenceEdge = Object.keys(edgeColors).includes(edge.relation);
       
+      // Phase 3: Check verification status
+      const isVerified = !edge.verification_status || edge.verification_status === 'verified';
+      const isPending = edge.verification_status === 'pending';
+      const isInferred = edge.verification_status === 'inferred';
+      
       ctx.beginPath();
       ctx.moveTo(edge.source.x, edge.source.y);
       
@@ -429,18 +477,33 @@ function Universe() {
         ctx.strokeStyle = toRgba(color, alpha);
         ctx.lineWidth = isHighlighted ? 2 : 1;
         
-        // Dashed for future paths
-        if (edge.relation === 'FUTURE_PATH') {
-          ctx.setLineDash([5, 5]);
+        // Visual distinction for verification status
+        if (edge.relation === 'FUTURE_PATH' || isInferred) {
+          ctx.setLineDash([5, 5]); // Dotted for future paths or inferred
+        } else if (isPending) {
+          ctx.setLineDash([3, 3]); // Short dots for pending
         } else {
-          ctx.setLineDash([]);
+          ctx.setLineDash([]); // Solid for verified
         }
       } else {
         ctx.lineTo(edge.target.x, edge.target.y);
         const alpha = isHighlighted ? 0.4 : 0.08;
-        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        
+        // Different colors for verification status (only in private mode)
+        if (privateMode && !isVerified) {
+          if (isInferred) {
+            ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`; // Purple for inferred
+          } else if (isPending) {
+            ctx.strokeStyle = `rgba(251, 191, 36, ${alpha})`; // Amber for pending
+          } else {
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+          }
+          ctx.setLineDash([3, 3]); // Dotted for unverified
+        } else {
+          ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+          ctx.setLineDash([]);
+        }
         ctx.lineWidth = isHighlighted ? 1.5 : 0.5;
-        ctx.setLineDash([]);
       }
       
       ctx.stroke();
@@ -523,11 +586,53 @@ function Universe() {
         ctx.textBaseline = 'top';
         ctx.fillText(node.label, node.x, node.y + size + 4);
       }
+      
+      // Phase 3: Verification badge (private mode only)
+      if (privateMode && node.verification_status === 'verified' && isHighlighted) {
+        // Draw verified checkmark badge
+        const badgeX = node.x + size * 0.7;
+        const badgeY = node.y - size * 0.7;
+        const badgeSize = 4;
+        
+        // Badge background
+        ctx.beginPath();
+        ctx.arc(badgeX, badgeY, badgeSize, 0, Math.PI * 2);
+        ctx.fillStyle = '#22c55e'; // Green
+        ctx.fill();
+        
+        // Checkmark
+        ctx.beginPath();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.moveTo(badgeX - 1.5, badgeY);
+        ctx.lineTo(badgeX - 0.5, badgeY + 1.2);
+        ctx.lineTo(badgeX + 2, badgeY - 1.2);
+        ctx.stroke();
+      }
+      
+      // Phase 3: Pending/inferred indicator (private mode only)
+      if (privateMode && (node.verification_status === 'pending' || node.verification_status === 'inferred') && isHighlighted) {
+        const indicatorX = node.x + size * 0.7;
+        const indicatorY = node.y - size * 0.7;
+        const indicatorSize = 4;
+        
+        ctx.beginPath();
+        ctx.arc(indicatorX, indicatorY, indicatorSize, 0, Math.PI * 2);
+        ctx.fillStyle = node.verification_status === 'pending' ? '#f59e0b' : '#a855f7'; // Amber for pending, purple for inferred
+        ctx.fill();
+        
+        // Question mark or dot
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${indicatorSize * 1.5}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.verification_status === 'pending' ? '?' : '*', indicatorX, indicatorY);
+      }
     });
     
     ctx.restore();
     
-  }, [simNodes, filteredNodes, filteredEdges, dimensions, zoom, pan, selectedNode, hoveredNode, viewMode, activeCluster, showIntelligenceEdges]);
+  }, [simNodes, filteredNodes, filteredEdges, dimensions, zoom, pan, selectedNode, hoveredNode, viewMode, activeCluster, showIntelligenceEdges, privateMode]);
   
   // Mouse handlers
   const getNodeAtPosition = useCallback((clientX: number, clientY: number): SimNode | null => {
@@ -748,35 +853,98 @@ function Universe() {
         {/* Left Panel - Clusters & Momentum */}
         <div className={`${leftPanelOpen ? 'w-72' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-white/10 bg-[#050508]/80 backdrop-blur-sm`}>
           <div className="h-full overflow-y-auto p-4 space-y-6">
-            {/* Capability Clusters */}
+            {/* Private Mode Toggle */}
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div>
+                <span className="text-sm text-white/70">Private Mode</span>
+                <p className="text-xs text-white/40">Show scores & formulas</p>
+              </div>
+              <button
+                onClick={togglePrivateMode}
+                className={`w-10 h-5 rounded-full transition-colors ${
+                  privateMode ? 'bg-cyan-500' : 'bg-white/20'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                  privateMode ? 'translate-x-5' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+            
+            {/* Phase 3: Verification Dashboard Button (Private Mode Only) */}
+            {privateMode && (
+              <button
+                onClick={() => setShowVerificationDashboard(true)}
+                className="w-full p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-left hover:bg-amber-500/20 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium text-amber-400">Verification Queue</span>
+                    <p className="text-xs text-white/40">Review pending nodes and edges</p>
+                  </div>
+                  <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </button>
+            )}
+            
+            {/* Phase 4: Gaps & Opportunities Button (Private Mode Only) */}
+            {privateMode && (
+              <button
+                onClick={() => setShowGapsPanel(true)}
+                className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-left hover:bg-green-500/20 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium text-green-400">Gaps & Opportunities</span>
+                    <p className="text-xs text-white/40">Auto-detected learning gaps and opportunities</p>
+                  </div>
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+              </button>
+            )}
+            
+            {/* Capability Clusters - API Powered with Computed Scores */}
             <div>
-              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Capability Clusters</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Capability Clusters</h3>
+                {clustersLoading && (
+                  <span className="text-xs text-cyan-400">Loading...</span>
+                )}
+              </div>
               <div className="space-y-2">
-                {capabilityClusters.map(cluster => (
-                  <button
+                {(apiClusters.length > 0 ? apiClusters : capabilityClusters.map(c => ({
+                  id: c.id,
+                  label: c.name,
+                  description: c.description,
+                  color: c.color,
+                  level: c.level,
+                  computedLevel: c.level,
+                  computedScore: 0,
+                  growthVelocity: c.growthRate,
+                  nodeCount: c.nodeIds.length,
+                  growth_rate: c.growthRate,
+                  momentum: 0,
+                  project_count: 0,
+                  skill_count: 0,
+                  core_skills: c.coreSkills || [],
+                } as EnrichedCluster))).map(cluster => (
+                  <ClusterScoreCard
                     key={cluster.id}
-                    onClick={() => setActiveCluster(activeCluster === cluster.id ? null : cluster.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-all ${
-                      activeCluster === cluster.id 
-                        ? 'bg-white/10 border border-white/20' 
-                        : 'bg-white/5 hover:bg-white/10 border border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium" style={{ color: cluster.color }}>{cluster.name}</span>
-                      <span className="text-xs text-white/40">L{cluster.level}</span>
-                    </div>
-                    <p className="text-xs text-white/50 line-clamp-1">{cluster.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full rounded-full" 
-                          style={{ width: `${cluster.level * 20}%`, backgroundColor: cluster.color }}
-                        />
-                      </div>
-                      <span className="text-xs text-white/40">{cluster.nodeIds.length} nodes</span>
-                    </div>
-                  </button>
+                    cluster={cluster}
+                    expanded={expandedCluster === cluster.id && privateMode}
+                    onClick={() => {
+                      // Toggle cluster filter
+                      setActiveCluster(activeCluster === cluster.id ? null : cluster.id);
+                      // Expand/collapse score details in private mode
+                      if (privateMode) {
+                        setExpandedCluster(expandedCluster === cluster.id ? null : cluster.id);
+                      }
+                    }}
+                  />
                 ))}
               </div>
             </div>
@@ -944,6 +1112,25 @@ function Universe() {
                 <span>{label}</span>
               </button>
             ))}
+            
+            {/* Phase 3: Verification Legend (Private Mode Only) */}
+            {privateMode && (
+              <>
+                <div className="w-px h-4 bg-white/20 self-center mx-1" />
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded text-xs opacity-70">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <span>Verified</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded text-xs opacity-70">
+                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span>Pending</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded text-xs opacity-70">
+                  <div className="w-2 h-2 rounded-full bg-purple-500" />
+                  <span>Inferred</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
         
@@ -963,53 +1150,80 @@ function Universe() {
           <div className="h-full overflow-y-auto p-4 space-y-6">
             {selectedNode ? (
               <>
-                {/* Node Header */}
-                <div>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: nodeColors[selectedNode.type] }}
-                        />
-                        <span className="text-xs text-white/50 uppercase">{nodeTypeLabels[selectedNode.type]}</span>
-                      </div>
-                      <h2 className="text-xl font-semibold">{selectedNode.label}</h2>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedNode(null);
-                        window.history.pushState({}, '', '/universe');
-                      }}
-                      className="p-1.5 hover:bg-white/10 rounded transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                {/* Loading State */}
+                {nodeLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-sm text-cyan-400">Loading node data...</div>
                   </div>
-                  {selectedNode.description && (
-                    <p className="text-sm text-white/70">{selectedNode.description}</p>
-                  )}
-                  {selectedNode.year && (
-                    <p className="text-xs text-white/40 mt-2">Year: {selectedNode.year}</p>
-                  )}
-                  {selectedNode.url && (
-                    <a 
-                      href={selectedNode.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 mt-2"
-                    >
-                      Visit
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  )}
-                </div>
+                )}
                 
-                {/* Share Link */}
+                {/* NODE=WORLD Panel (API Data Available) */}
+                {!nodeLoading && nodeData?.success && (
+                  <NodeWorldPanel
+                    nodeData={nodeData}
+                    onNodeSelect={(nodeId) => {
+                      const simNode = simNodes.find(n => n.id === nodeId);
+                      if (simNode) setSelectedNode(simNode);
+                    }}
+                    onClose={() => {
+                      setSelectedNode(null);
+                      window.history.pushState({}, '', '/universe');
+                    }}
+                  />
+                )}
+                
+                {/* Fallback: Original Node Detail (API Failed or Unavailable) */}
+                {!nodeLoading && (!nodeData?.success || !nodeData) && (
+                  <>
+                    {/* Node Header */}
+                    <div>
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: nodeColors[selectedNode.type] }}
+                            />
+                            <span className="text-xs text-white/50 uppercase">{nodeTypeLabels[selectedNode.type]}</span>
+                          </div>
+                          <h2 className="text-xl font-semibold">{selectedNode.label}</h2>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedNode(null);
+                            window.history.pushState({}, '', '/universe');
+                          }}
+                          className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      {selectedNode.description && (
+                        <p className="text-sm text-white/70">{selectedNode.description}</p>
+                      )}
+                      {selectedNode.year && (
+                        <p className="text-xs text-white/40 mt-2">Year: {selectedNode.year}</p>
+                      )}
+                      {selectedNode.url && (
+                        <a 
+                          href={selectedNode.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 mt-2"
+                        >
+                          Visit
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  </>
+                )}
+                
+                {/* Share Link (Always Show) */}
                 <div className="p-3 bg-white/5 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-white/50">Share this node</span>
@@ -1023,24 +1237,7 @@ function Universe() {
                   <div className="text-xs text-white/40 font-mono truncate">{shareUrl}</div>
                 </div>
                 
-                {/* Cluster Info */}
-                {nodeCluster && (
-                  <div className="p-3 rounded-lg border" style={{ borderColor: toRgba(nodeCluster.color, 0.3), backgroundColor: toRgba(nodeCluster.color, 0.05) }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: nodeCluster.color }} />
-                      <span className="text-sm font-medium" style={{ color: nodeCluster.color }}>
-                        {nodeCluster.name}
-                      </span>
-                    </div>
-                    <p className="text-xs text-white/50">{nodeCluster.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs text-white/40">Mastery Level {nodeCluster.level}</span>
-                      <span className="text-xs text-white/40">·</span>
-                      <span className="text-xs text-white/40">{nodeCluster.growthRate.toFixed(1)} proj/mo</span>
-                    </div>
-                  </div>
-                )}
-                
+                {/* Additional Context (Growth Arcs, Cross-pollinations, etc.) */}
                 {/* Growth Arcs */}
                 {nodeGrowthArcs.length > 0 && (
                   <div>
@@ -1266,6 +1463,41 @@ function Universe() {
           </div>
         </div>
       </div>
+      
+      {/* Phase 3: Verification Dashboard Modal */}
+      {showVerificationDashboard && privateMode && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowVerificationDashboard(false)}
+          />
+          <div className="relative w-full max-w-4xl h-[80vh] max-h-[800px] bg-[#0a0a0f] border border-white/10 rounded-lg overflow-hidden">
+            <VerificationDashboard onClose={() => setShowVerificationDashboard(false)} />
+          </div>
+        </div>
+      )}
+      
+      {/* Phase 4: Gaps & Opportunities Modal */}
+      {showGapsPanel && privateMode && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowGapsPanel(false)}
+          />
+          <div className="relative w-full max-w-4xl h-[80vh] max-h-[800px] bg-[#0a0a0f] border border-white/10 rounded-lg overflow-hidden">
+            <GapsOpportunitiesPanel 
+              onClose={() => setShowGapsPanel(false)}
+              onNodeSelect={(nodeId) => {
+                const simNode = simNodes.find(n => n.id === nodeId);
+                if (simNode) {
+                  setSelectedNode(simNode);
+                  setShowGapsPanel(false);
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
