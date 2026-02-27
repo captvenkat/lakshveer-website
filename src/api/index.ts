@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from "hono/cors"
+import ogApp from './og-image';
 
 interface ContactFormData {
   name: string;
@@ -16,6 +17,9 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>().basePath('api');
 
 app.use(cors({ origin: "*" }));
+
+// Mount OG image routes
+app.route('/', ogApp);
 
 app.get('/ping', (c) => c.json({ message: `Pong! ${Date.now()}` }));
 
