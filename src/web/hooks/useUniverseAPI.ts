@@ -5,17 +5,57 @@ import { useState, useCallback } from 'react';
 
 const API_BASE = '/api/universe';
 
-// Get auth header if in private mode
+// Simple hash for password verification (not crypto-secure, but prevents casual snooping)
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
+// The hash of the correct password (pre-computed)
+// Password: "insidenagole" -> hash
+const CORRECT_HASH = simpleHash('insidenagole');
+
+// Verify password and store session
+export function verifyPrivatePassword(password: string): boolean {
+  const inputHash = simpleHash(password);
+  if (inputHash === CORRECT_HASH) {
+    // Store session token (hash of password + timestamp for this session)
+    const sessionToken = simpleHash(password + 'laksh-session');
+    localStorage.setItem('universe-session', sessionToken);
+    localStorage.setItem('universe-private-mode', 'true');
+    return true;
+  }
+  return false;
+}
+
+// Check if session is valid
+export function isSessionValid(): boolean {
+  const sessionToken = localStorage.getItem('universe-session');
+  const expectedToken = simpleHash('insidenagole' + 'laksh-session');
+  return sessionToken === expectedToken;
+}
+
+// Logout / clear session
+export function clearPrivateSession(): void {
+  localStorage.removeItem('universe-session');
+  localStorage.removeItem('universe-private-mode');
+}
+
+// Get auth header if in private mode (with session validation)
 function getAuthHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
   
-  // Check for private mode (set via localStorage or URL param)
-  const isPrivateMode = localStorage.getItem('universe-private-mode') === 'true' ||
-    new URLSearchParams(window.location.search).get('mode') === 'private';
+  // Check for private mode with valid session
+  const isPrivate = localStorage.getItem('universe-private-mode') === 'true' && isSessionValid();
   
-  if (isPrivateMode) {
+  if (isPrivate) {
     headers['X-Universe-Auth'] = 'laksh-private-2026';
   }
   
@@ -245,13 +285,16 @@ export function useClusters() {
   return { loading, clusters, scoringConfig, loadClusters };
 }
 
-// Check if private mode is enabled
+// Check if private mode is enabled (with session validation)
 export function isPrivateMode(): boolean {
-  return localStorage.getItem('universe-private-mode') === 'true' ||
-    new URLSearchParams(window.location.search).get('mode') === 'private';
+  return localStorage.getItem('universe-private-mode') === 'true' && isSessionValid();
 }
 
-// Toggle private mode
+// Toggle private mode (requires valid session)
 export function setPrivateMode(enabled: boolean): void {
+  if (enabled && !isSessionValid()) {
+    // Can't enable without valid session
+    return;
+  }
   localStorage.setItem('universe-private-mode', enabled ? 'true' : 'false');
 }

@@ -33,7 +33,7 @@ import {
   type MomentumMetrics,
   type EnhancedEdge,
 } from "@/data/universe-intelligence";
-import { useNodeDetail, useClusters, isPrivateMode, setPrivateMode, type NodeDetailResponse, type EnrichedCluster } from "@/hooks/useUniverseAPI";
+import { useNodeDetail, useClusters, isPrivateMode, setPrivateMode, verifyPrivatePassword, isSessionValid, clearPrivateSession, type NodeDetailResponse, type EnrichedCluster } from "@/hooks/useUniverseAPI";
 import { NodeWorldPanel } from "@/components/NodeWorldPanel";
 import { ClusterScoreCard } from "@/components/ClusterScoreCard";
 import { VerificationDashboard } from "@/components/VerificationDashboard";
@@ -172,14 +172,44 @@ function Universe() {
   // Phase 4: Gaps & Opportunities Panel
   const [showGapsPanel, setShowGapsPanel] = useState(false);
   
-  // Toggle private mode
+  // Password gate for private mode
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  
+  // Toggle private mode with password gate
   const togglePrivateMode = useCallback(() => {
-    const newMode = !privateMode;
-    setPrivateModeState(newMode);
-    setPrivateMode(newMode);
-    // Reload clusters to get score breakdown
-    loadClusters();
+    if (privateMode) {
+      // Turning off - just disable
+      clearPrivateSession();
+      setPrivateModeState(false);
+      loadClusters();
+    } else {
+      // Turning on - check if session valid or show password modal
+      if (isSessionValid()) {
+        setPrivateModeState(true);
+        setPrivateMode(true);
+        loadClusters();
+      } else {
+        setShowPasswordModal(true);
+        setPasswordInput('');
+        setPasswordError(false);
+      }
+    }
   }, [privateMode, loadClusters]);
+  
+  // Handle password submission
+  const handlePasswordSubmit = useCallback(() => {
+    if (verifyPrivatePassword(passwordInput)) {
+      setPrivateModeState(true);
+      setShowPasswordModal(false);
+      setPasswordInput('');
+      setPasswordError(false);
+      loadClusters();
+    } else {
+      setPasswordError(true);
+    }
+  }, [passwordInput, loadClusters]);
   
   // Load API data on mount
   useEffect(() => {
@@ -1495,6 +1525,58 @@ function Universe() {
                 }
               }}
             />
+          </div>
+        </div>
+      )}
+      
+      {/* Password Modal for Private Mode */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowPasswordModal(false)}
+          />
+          <div className="relative w-full max-w-sm bg-[#0a0a0f] border border-white/10 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Enter Password</h3>
+            <p className="text-xs text-white/50 mb-4">Private mode requires authentication.</p>
+            
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => {
+                setPasswordInput(e.target.value);
+                setPasswordError(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handlePasswordSubmit();
+                }
+              }}
+              placeholder="Password"
+              className={`w-full px-4 py-2 bg-white/5 border rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-500 ${
+                passwordError ? 'border-red-500' : 'border-white/10'
+              }`}
+              autoFocus
+            />
+            
+            {passwordError && (
+              <p className="text-xs text-red-400 mt-2">Incorrect password</p>
+            )}
+            
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/70 hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePasswordSubmit}
+                className="flex-1 px-4 py-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-colors"
+              >
+                Enter
+              </button>
+            </div>
           </div>
         </div>
       )}
