@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from "hono/cors"
 import ogApp from './og-image';
+import universeApi from './universe-api';
 
 interface ContactFormData {
   name: string;
@@ -20,6 +21,9 @@ app.use(cors({ origin: "*" }));
 
 // Mount OG image routes
 app.route('/', ogApp);
+
+// Mount Universe API
+app.route('/universe', universeApi);
 
 app.get('/ping', (c) => c.json({ message: `Pong! ${Date.now()}` }));
 
