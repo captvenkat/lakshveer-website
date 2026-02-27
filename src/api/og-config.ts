@@ -12,6 +12,7 @@ export interface OGMeta {
 
 const BASE_URL = 'https://lakshveer.com';
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`;
+const OG_VERSION = 'v2'; // Cache buster for OG images
 
 // Static page OG configurations
 export const PAGE_OG_CONFIG: Record<string, OGMeta> = {
@@ -132,18 +133,24 @@ export function getOGConfigForPath(path: string): OGMeta {
 
 // Generate HTML meta tags from OG config
 export function generateOGMetaTags(config: OGMeta, url: string): string {
+  // Add cache buster to image URLs
+  const imageUrl = config.image.includes('?') 
+    ? `${config.image}&${OG_VERSION}` 
+    : `${config.image}?${OG_VERSION}`;
+  
   return `
     <!-- Primary Meta Tags -->
     <title>${config.title}</title>
     <meta name="title" content="${config.title}" />
     <meta name="description" content="${config.description}" />
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="${config.type}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:title" content="${config.title}" />
     <meta property="og:description" content="${config.description}" />
-    <meta property="og:image" content="${config.image}" />
+    <meta property="og:image" content="${imageUrl}" />
+    <meta property="og:image:secure_url" content="${imageUrl}" />
     <meta property="og:image:alt" content="${config.imageAlt}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -153,10 +160,12 @@ export function generateOGMetaTags(config: OGMeta, url: string): string {
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:domain" content="lakshveer.com" />
     <meta name="twitter:url" content="${url}" />
     <meta name="twitter:title" content="${config.title}" />
     <meta name="twitter:description" content="${config.description}" />
-    <meta name="twitter:image" content="${config.image}" />
+    <meta name="twitter:image" content="${imageUrl}" />
+    <meta name="twitter:image:src" content="${imageUrl}" />
     <meta name="twitter:site" content="@LakshveerRao" />
     <meta name="twitter:creator" content="@LakshveerRao" />
     
