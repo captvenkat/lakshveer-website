@@ -172,6 +172,9 @@ function Universe() {
   // Phase 4: Gaps & Opportunities Panel
   const [showGapsPanel, setShowGapsPanel] = useState(false);
   
+  // Phase A: Node opportunity counts for visual indicators
+  const [nodeOpportunities, setNodeOpportunities] = useState<Record<string, { count: number; types: string[] }>>({});
+  
   // Password gate for private mode
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
@@ -215,6 +218,24 @@ function Universe() {
   useEffect(() => {
     loadClusters();
   }, []);
+  
+  // Load opportunity counts for node indicators (private mode only)
+  useEffect(() => {
+    if (privateMode) {
+      fetch('/api/universe/opportunities/intelligent', {
+        headers: { 'X-Universe-Auth': 'laksh-private-2026' }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.nodeOpportunities) {
+            setNodeOpportunities(data.nodeOpportunities);
+          }
+        })
+        .catch(err => console.error('Failed to load opportunity counts:', err));
+    } else {
+      setNodeOpportunities({});
+    }
+  }, [privateMode]);
   
   // Load node detail when selected
   useEffect(() => {
@@ -617,6 +638,43 @@ function Universe() {
         ctx.fillText(node.label, node.x, node.y + size + 4);
       }
       
+      // Phase A: Opportunity indicator (private mode only)
+      const oppCount = nodeOpportunities[node.id]?.count || 0;
+      if (privateMode && oppCount > 0 && isHighlighted) {
+        const oppBadgeX = node.x - size * 0.7;
+        const oppBadgeY = node.y - size * 0.7;
+        const oppBadgeSize = 5;
+        
+        // Pulsing glow for high-opportunity nodes
+        if (oppCount >= 3) {
+          const pulseTime = Date.now() / 1000;
+          const pulseAlpha = 0.3 + Math.sin(pulseTime * 2) * 0.2;
+          const pulseGradient = ctx.createRadialGradient(
+            node.x, node.y, 0,
+            node.x, node.y, size + 15
+          );
+          pulseGradient.addColorStop(0, `rgba(255, 193, 7, ${pulseAlpha})`);
+          pulseGradient.addColorStop(1, 'transparent');
+          ctx.fillStyle = pulseGradient;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, size + 15, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Opportunity badge
+        ctx.beginPath();
+        ctx.arc(oppBadgeX, oppBadgeY, oppBadgeSize, 0, Math.PI * 2);
+        ctx.fillStyle = oppCount >= 5 ? '#fbbf24' : oppCount >= 3 ? '#f59e0b' : '#fb923c'; // Gold, amber, orange
+        ctx.fill();
+        
+        // Count number
+        ctx.fillStyle = '#000000';
+        ctx.font = `bold ${oppBadgeSize * 1.4}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(oppCount > 9 ? '9+' : oppCount.toString(), oppBadgeX, oppBadgeY);
+      }
+      
       // Phase 3: Verification badge (private mode only)
       if (privateMode && node.verification_status === 'verified' && isHighlighted) {
         // Draw verified checkmark badge
@@ -662,7 +720,7 @@ function Universe() {
     
     ctx.restore();
     
-  }, [simNodes, filteredNodes, filteredEdges, dimensions, zoom, pan, selectedNode, hoveredNode, viewMode, activeCluster, showIntelligenceEdges, privateMode]);
+  }, [simNodes, filteredNodes, filteredEdges, dimensions, zoom, pan, selectedNode, hoveredNode, viewMode, activeCluster, showIntelligenceEdges, privateMode, nodeOpportunities]);
   
   // Mouse handlers
   const getNodeAtPosition = useCallback((clientX: number, clientY: number): SimNode | null => {

@@ -2,9 +2,14 @@
 // Phase 2: Node=World System + Capability Engine with Real Scoring
 // Phase 3: Verification Layer + Trust System
 // Phase 4: Learning Gap + Opportunity Engines
+// Phase A v3: Intelligent Opportunity Intelligence Engine with LLM
 // Handles all universe data operations with mode-based access
 
 import { Hono } from 'hono';
+import { GraphTraversal, PatternMatcher, OpportunityGenerator } from './opportunity-engine-v2';
+import type { IntelligentOpportunity } from './opportunity-engine-v2';
+import { EnhancedGraphTraversal, LLMOpportunityGenerator } from './opportunity-intelligence';
+import type { OpportunityContext } from './opportunity-intelligence';
 
 interface Env {
   DB: D1Database;
@@ -186,47 +191,508 @@ const GAP_ENGINE_CONFIG = {
 };
 
 // ============================================
-// PHASE 4: OPPORTUNITY ENGINE - Configuration
+// PHASE A: ALIGNMENT ENGINE - Configuration
 // ============================================
-const OPPORTUNITY_ENGINE_CONFIG = {
-  // Opportunity types
-  opportunityTypes: {
-    hackathon: { baseConfidence: 70, label: 'Hackathon' },
-    grant: { baseConfidence: 60, label: 'Grant Opportunity' },
-    collaboration: { baseConfidence: 50, label: 'Collaboration' },
-    media: { baseConfidence: 40, label: 'Media Feature' },
-    speaking: { baseConfidence: 55, label: 'Speaking Opportunity' },
-  } as Record<string, { baseConfidence: number; label: string }>,
+const ALIGNMENT_ENGINE_CONFIG = {
+  // Weights for alignment score calculation
+  weights: {
+    clusterOverlap: 0.30,      // How much their focus matches Laksh's clusters
+    buildRelevance: 0.25,      // How relevant their work is to Laksh's builds
+    stageCompatibility: 0.15,  // Student builder vs their typical engagement
+    recency: 0.15,             // Recent activity boost
+    domainSimilarity: 0.15,    // Domain keyword matching
+  },
   
-  // Pattern matching for opportunities
-  patterns: {
-    hardware_hackathon: {
-      requiredSkills: ['electronics', 'arduino'],
-      optionalSkills: ['robotics', '3d-printing'],
-      minClusterLevel: 3,
-    },
-    ai_hackathon: {
-      requiredSkills: ['python', 'machine-learning'],
-      optionalSkills: ['computer-vision', 'tensorflow'],
-      minClusterLevel: 2,
-    },
-    robotics_competition: {
-      requiredSkills: ['robotics', 'electronics'],
-      optionalSkills: ['computer-vision', 'cpp'],
-      minClusterLevel: 3,
-    },
-    maker_grant: {
-      requiredProjects: 3,
-      minImpactScore: 60,
-      validationRequired: true,
-    },
-    tech_media: {
-      minUniqueProjects: 5,
-      recentActivity: true,
-      minAwards: 1,
-    },
-  } as Record<string, any>,
+  // Minimum score to trigger opportunity generation
+  opportunityThreshold: 40,
+  
+  // Domain keywords for matching
+  domainKeywords: {
+    hardware: ['electronics', 'circuits', 'arduino', 'esp32', 'sensors', 'motors', 'pcb', 'embedded', 'iot'],
+    robotics: ['robotics', 'robot', 'automation', 'autonomous', 'navigation', 'mechatronics'],
+    ai: ['ai', 'ml', 'machine learning', 'computer vision', 'deep learning', 'tensorflow', 'neural'],
+    maker: ['maker', 'diy', 'prototype', 'fabrication', '3d printing', 'hackerspace', 'tinkering'],
+    education: ['education', 'learning', 'stem', 'kids', 'young', 'student', 'school', 'teaching'],
+    startup: ['startup', 'founder', 'entrepreneur', 'venture', 'innovation', 'accelerator', 'incubator'],
+  } as Record<string, string[]>,
+  
+  // Stage compatibility mapping
+  stageMapping: {
+    // Org types that work well with young builders
+    highCompatibility: ['accelerator', 'grant', 'education', 'maker', 'hackathon', 'foundation'],
+    mediumCompatibility: ['vc', 'startup', 'media', 'sponsor'],
+    lowCompatibility: ['enterprise', 'government', 'manufacturing'],
+  },
+  
+  // Opportunity categories
+  opportunityCategories: [
+    'invite',       // Event invitation
+    'grant',        // Funding opportunity
+    'scholarship',  // Educational access
+    'partnership',  // Collaborative work
+    'sponsorship',  // Resource support
+    'collab',       // Project collaboration
+    'learning',     // Learning access
+    'pitch',        // Demo/pitch opportunity
+  ] as const,
 };
+
+// ============================================
+// PHASE A: VALUE FRAMING ENGINE - Configuration  
+// ============================================
+const VALUE_FRAMING_CONFIG = {
+  // Value dimensions for Laksh
+  lakshValueDimensions: {
+    skillGrowth: 'New skills or deepened expertise',
+    access: 'Access to resources, tools, or networks',
+    validation: 'External recognition or credibility',
+    resources: 'Financial or material support',
+    narrative: 'Story that strengthens positioning',
+  },
+  
+  // Value dimensions for counterparty
+  counterpartyValueDimensions: {
+    uniqueStory: '8-year-old hardware+AI builder narrative',
+    technicalDepth: 'Real builds with working prototypes',
+    demoReady: 'Projects ready to showcase',
+    caseStudy: 'Compelling success story material',
+    visibility: 'Social proof and community reach',
+    relationship: 'Long-term relationship potential',
+  },
+  
+  // Build highlights for framing
+  buildHighlights: [
+    { id: 'circuitheroes', label: 'CircuitHeroes', highlight: '300+ decks sold, trademark registered' },
+    { id: 'motionx', label: 'MotionX', highlight: 'Full-body motion gaming system' },
+    { id: 'drishtikon-yantra', label: 'Drishtikon Yantra', highlight: 'Vision-based assistive device' },
+    { id: 'hardvare', label: 'Hardvare', highlight: 'Hardware safety platform' },
+  ],
+};
+
+// ============================================
+// PHASE A: ALIGNMENT ENGINE - Core Functions
+// ============================================
+
+interface AlignmentScore {
+  total: number;
+  breakdown: {
+    clusterOverlap: number;
+    buildRelevance: number;
+    stageCompatibility: number;
+    recency: number;
+    domainSimilarity: number;
+  };
+  matchedClusters: string[];
+  matchedDomains: string[];
+  reasoning: string;
+}
+
+interface ValueFrame {
+  forLaksh: {
+    dimension: string;
+    description: string;
+    strength: 'high' | 'medium' | 'low';
+  }[];
+  forThem: {
+    dimension: string;
+    description: string;
+    strength: 'high' | 'medium' | 'low';
+  }[];
+  mutualBenefit: string;
+}
+
+interface ComputedOpportunity {
+  id: string;
+  targetNodeId: string;
+  targetLabel: string;
+  category: typeof ALIGNMENT_ENGINE_CONFIG.opportunityCategories[number];
+  alignmentScore: number;
+  alignmentBreakdown: AlignmentScore['breakdown'];
+  reasoning: string;
+  matchedClusters: string[];
+  supportingBuilds: string[];
+  valueFrame: ValueFrame;
+  suggestedAction: string;
+  confidence: number;
+}
+
+/**
+ * Calculate alignment score between an external node and Laksh
+ */
+async function calculateAlignment(
+  db: D1Database,
+  externalNode: any,
+  lakshClusters: any[],
+  lakshBuilds: any[],
+  lakshSkills: any[]
+): Promise<AlignmentScore> {
+  const weights = ALIGNMENT_ENGINE_CONFIG.weights;
+  const breakdown = {
+    clusterOverlap: 0,
+    buildRelevance: 0,
+    stageCompatibility: 0,
+    recency: 0,
+    domainSimilarity: 0,
+  };
+  const matchedClusters: string[] = [];
+  const matchedDomains: string[] = [];
+  const reasoningParts: string[] = [];
+  
+  // Get node metadata
+  const nodeDesc = (externalNode.description || '').toLowerCase();
+  const nodeMeta = externalNode.meta || {};
+  const nodeType = externalNode.type;
+  
+  // 1. CLUSTER OVERLAP (30%)
+  // Check if external node's focus overlaps with Laksh's strong clusters
+  for (const cluster of lakshClusters) {
+    const clusterKeywords = cluster.core_skills || [];
+    const clusterLevel = cluster.computedLevel || cluster.level || 1;
+    
+    // Check if node description mentions cluster keywords
+    let matches = 0;
+    for (const keyword of clusterKeywords) {
+      if (nodeDesc.includes(keyword.toLowerCase())) {
+        matches++;
+      }
+    }
+    
+    if (matches > 0) {
+      // Weight by cluster level (stronger clusters = more valuable alignment)
+      const clusterWeight = (clusterLevel / 5) * (matches / clusterKeywords.length);
+      breakdown.clusterOverlap += clusterWeight * 100;
+      matchedClusters.push(cluster.label);
+    }
+  }
+  breakdown.clusterOverlap = Math.min(100, breakdown.clusterOverlap);
+  
+  if (matchedClusters.length > 0) {
+    reasoningParts.push(`Overlaps with ${matchedClusters.join(', ')} clusters`);
+  }
+  
+  // 2. BUILD RELEVANCE (25%)
+  // Check if their work relates to Laksh's actual builds
+  const buildKeywords = lakshBuilds.flatMap(b => [
+    b.label?.toLowerCase(),
+    ...(b.description || '').toLowerCase().split(' ').filter((w: string) => w.length > 4)
+  ]).filter(Boolean);
+  
+  let buildMatches = 0;
+  for (const keyword of buildKeywords) {
+    if (nodeDesc.includes(keyword)) {
+      buildMatches++;
+    }
+  }
+  breakdown.buildRelevance = Math.min(100, (buildMatches / Math.max(1, buildKeywords.length * 0.1)) * 100);
+  
+  if (buildMatches > 2) {
+    reasoningParts.push(`Relevant to ${buildMatches} of Laksh's builds`);
+  }
+  
+  // 3. STAGE COMPATIBILITY (15%)
+  // Young builder + org type compatibility
+  const { highCompatibility, mediumCompatibility } = ALIGNMENT_ENGINE_CONFIG.stageMapping;
+  
+  const typeIndicators = nodeDesc.split(' ');
+  let stageScore = 30; // Base score
+  
+  for (const indicator of highCompatibility) {
+    if (nodeDesc.includes(indicator)) {
+      stageScore = 100;
+      reasoningParts.push(`High stage compatibility (${indicator})`);
+      break;
+    }
+  }
+  if (stageScore < 100) {
+    for (const indicator of mediumCompatibility) {
+      if (nodeDesc.includes(indicator) || nodeType === 'organization') {
+        stageScore = 60;
+        break;
+      }
+    }
+  }
+  
+  // Boost if they've already supported Laksh
+  const existingEdges = await db.prepare(
+    `SELECT * FROM universe_edges WHERE 
+     (source_id = ? AND target_id = 'lakshveer') OR 
+     (source_id = 'lakshveer' AND target_id = ?)`
+  ).bind(externalNode.id, externalNode.id).all();
+  
+  if ((existingEdges.results?.length || 0) > 0) {
+    stageScore = Math.min(100, stageScore + 30);
+    reasoningParts.push('Existing relationship');
+  }
+  
+  breakdown.stageCompatibility = stageScore;
+  
+  // 4. RECENCY (15%)
+  // Recent activity in relevant space
+  const currentYear = 2026;
+  const currentMonth = 2;
+  
+  // Check if org has recent activity
+  let recencyScore = 50; // Default
+  if (nodeMeta.lastActive || externalNode.timestamp) {
+    const timestamp = nodeMeta.lastActive || externalNode.timestamp;
+    const [year, month] = timestamp.split('-').map(Number);
+    const monthsAgo = (currentYear - year) * 12 + (currentMonth - month);
+    recencyScore = Math.max(0, 100 - monthsAgo * 5);
+  }
+  
+  // Boost for known active orgs
+  if (nodeMeta.grant || nodeMeta.accelerator || nodeDesc.includes('2026') || nodeDesc.includes('2025')) {
+    recencyScore = Math.min(100, recencyScore + 20);
+  }
+  
+  breakdown.recency = recencyScore;
+  
+  // 5. DOMAIN SIMILARITY (15%)
+  // Keyword matching across domains
+  const domains = ALIGNMENT_ENGINE_CONFIG.domainKeywords;
+  
+  for (const [domain, keywords] of Object.entries(domains)) {
+    let domainMatches = 0;
+    for (const keyword of keywords) {
+      if (nodeDesc.includes(keyword)) {
+        domainMatches++;
+      }
+    }
+    if (domainMatches >= 2) {
+      matchedDomains.push(domain);
+      breakdown.domainSimilarity += (domainMatches / keywords.length) * 30;
+    }
+  }
+  breakdown.domainSimilarity = Math.min(100, breakdown.domainSimilarity);
+  
+  if (matchedDomains.length > 0) {
+    reasoningParts.push(`Domain match: ${matchedDomains.join(', ')}`);
+  }
+  
+  // Calculate total
+  const total = 
+    breakdown.clusterOverlap * weights.clusterOverlap +
+    breakdown.buildRelevance * weights.buildRelevance +
+    breakdown.stageCompatibility * weights.stageCompatibility +
+    breakdown.recency * weights.recency +
+    breakdown.domainSimilarity * weights.domainSimilarity;
+  
+  return {
+    total: Math.round(total),
+    breakdown,
+    matchedClusters,
+    matchedDomains,
+    reasoning: reasoningParts.length > 0 ? reasoningParts.join('. ') : 'Low alignment - no significant overlap detected',
+  };
+}
+
+/**
+ * Generate value framing for an opportunity
+ */
+function generateValueFrame(
+  alignment: AlignmentScore,
+  externalNode: any,
+  category: string,
+  lakshClusters: any[],
+  lakshBuilds: any[]
+): ValueFrame {
+  const forLaksh: ValueFrame['forLaksh'] = [];
+  const forThem: ValueFrame['forThem'] = [];
+  
+  // Value for Laksh based on category and alignment
+  if (category === 'grant' || category === 'sponsorship') {
+    forLaksh.push({
+      dimension: 'Resources',
+      description: 'Financial support for hardware builds and prototyping',
+      strength: 'high',
+    });
+  }
+  
+  if (category === 'learning' || category === 'collab') {
+    forLaksh.push({
+      dimension: 'Skill Growth',
+      description: `Deepen ${alignment.matchedClusters[0] || 'technical'} expertise through real collaboration`,
+      strength: alignment.breakdown.clusterOverlap > 50 ? 'high' : 'medium',
+    });
+  }
+  
+  if (category === 'invite' || category === 'pitch') {
+    forLaksh.push({
+      dimension: 'Validation',
+      description: 'External recognition from established organization',
+      strength: alignment.breakdown.stageCompatibility > 60 ? 'high' : 'medium',
+    });
+    forLaksh.push({
+      dimension: 'Network Access',
+      description: 'Connection to their ecosystem and community',
+      strength: 'medium',
+    });
+  }
+  
+  if (category === 'partnership') {
+    forLaksh.push({
+      dimension: 'Narrative',
+      description: 'Partnership strengthens builder credibility',
+      strength: 'high',
+    });
+  }
+  
+  // Default if none added
+  if (forLaksh.length === 0) {
+    forLaksh.push({
+      dimension: 'Access',
+      description: 'Opens doors to new resources and opportunities',
+      strength: 'medium',
+    });
+  }
+  
+  // Value for Them - always include core Laksh differentiators
+  forThem.push({
+    dimension: 'Unique Story',
+    description: '8-year-old hardware+AI builder with shipped products',
+    strength: 'high',
+  });
+  
+  // Find relevant builds to highlight
+  const relevantBuilds = lakshBuilds.filter(b => 
+    alignment.matchedClusters.some(c => 
+      b.cluster_id?.includes(c.toLowerCase().replace(/\s+/g, '-'))
+    )
+  ).slice(0, 2);
+  
+  if (relevantBuilds.length > 0 || lakshBuilds.length > 0) {
+    forThem.push({
+      dimension: 'Demo-Ready Builds',
+      description: `Working prototypes: ${(relevantBuilds.length > 0 ? relevantBuilds : lakshBuilds.slice(0, 2)).map(b => b.label).join(', ')}`,
+      strength: 'high',
+    });
+  }
+  
+  if (category === 'media' || category === 'pitch') {
+    forThem.push({
+      dimension: 'Case Study',
+      description: 'Compelling young maker story for content/PR',
+      strength: 'high',
+    });
+  }
+  
+  forThem.push({
+    dimension: 'Long-term Relationship',
+    description: 'Early relationship with a builder on growth trajectory',
+    strength: 'medium',
+  });
+  
+  // Generate mutual benefit summary
+  const mutual = `${externalNode.label} gains a unique young builder story and demo-ready projects. ` +
+    `Laksh gains ${category === 'grant' ? 'resources' : category === 'learning' ? 'skill growth' : 'validation'} ` +
+    `and access to their ${alignment.matchedDomains[0] || 'professional'} network.`;
+  
+  return {
+    forLaksh,
+    forThem,
+    mutualBenefit: mutual,
+  };
+}
+
+/**
+ * Generate opportunities from alignment scores (replaces hardcoded patterns)
+ */
+async function generateAlignedOpportunities(db: D1Database): Promise<ComputedOpportunity[]> {
+  const opportunities: ComputedOpportunity[] = [];
+  
+  // Get Laksh's data for alignment calculation
+  const [clustersResult, buildsResult, skillsResult] = await Promise.all([
+    db.prepare(`SELECT * FROM universe_clusters`).all(),
+    db.prepare(`SELECT * FROM universe_nodes WHERE type = 'project' AND verification_status = 'verified'`).all(),
+    db.prepare(`SELECT * FROM universe_nodes WHERE type = 'skill' AND verification_status = 'verified'`).all(),
+  ]);
+  
+  const clusters = clustersResult.results || [];
+  const builds = buildsResult.results || [];
+  const skills = skillsResult.results || [];
+  
+  // Get external nodes (orgs, people, events)
+  const externalNodes = await db.prepare(
+    `SELECT * FROM universe_nodes 
+     WHERE type IN ('organization', 'person', 'event', 'company') 
+     AND verification_status = 'verified'
+     AND id != 'lakshveer' AND id != 'capt-venkat'`
+  ).all();
+  
+  // Calculate alignment for each external node
+  for (const node of (externalNodes.results || []) as any[]) {
+    const alignment = await calculateAlignment(db, node, clusters, builds, skills);
+    
+    // Only generate opportunity if alignment > threshold
+    if (alignment.total < ALIGNMENT_ENGINE_CONFIG.opportunityThreshold) {
+      continue;
+    }
+    
+    // Determine opportunity category based on node type and metadata
+    let category: typeof ALIGNMENT_ENGINE_CONFIG.opportunityCategories[number] = 'collab';
+    const nodeDesc = (node.description || '').toLowerCase();
+    const nodeMeta = node.meta || {};
+    
+    if (nodeMeta.grant || nodeDesc.includes('grant')) {
+      category = 'grant';
+    } else if (nodeDesc.includes('accelerator') || nodeDesc.includes('incubator')) {
+      category = 'partnership';
+    } else if (nodeDesc.includes('hackathon') || nodeDesc.includes('competition')) {
+      category = 'invite';
+    } else if (nodeDesc.includes('sponsor')) {
+      category = 'sponsorship';
+    } else if (nodeDesc.includes('media') || nodeDesc.includes('magazine') || nodeDesc.includes('press')) {
+      category = 'pitch';
+    } else if (node.type === 'event') {
+      category = 'invite';
+    } else if (node.type === 'person') {
+      category = 'learning';
+    }
+    
+    // Generate value framing
+    const valueFrame = generateValueFrame(alignment, node, category, clusters, builds);
+    
+    // Find supporting builds
+    const supportingBuilds = builds
+      .filter((b: any) => alignment.matchedClusters.some(c => 
+        b.cluster_id?.toLowerCase().includes(c.toLowerCase().replace(/\s+/g, '-'))
+      ))
+      .slice(0, 3)
+      .map((b: any) => b.label);
+    
+    // Generate suggested action
+    const actions: Record<string, string> = {
+      grant: `Research ${node.label}'s current grant programs and application requirements`,
+      invite: `Prepare demo of relevant builds for ${node.label} event`,
+      sponsorship: `Draft sponsorship proposal highlighting mutual value`,
+      partnership: `Schedule introductory call to explore collaboration`,
+      collab: `Identify specific project for co-development`,
+      learning: `Request mentorship session on ${alignment.matchedDomains[0] || 'relevant domain'}`,
+      pitch: `Prepare 2-minute pitch deck and demo video`,
+      scholarship: `Research ${node.label}'s scholarship criteria and deadlines`,
+    };
+    
+    opportunities.push({
+      id: `opp-aligned-${node.id}-${Date.now()}`,
+      targetNodeId: node.id,
+      targetLabel: node.label,
+      category,
+      alignmentScore: alignment.total,
+      alignmentBreakdown: alignment.breakdown,
+      reasoning: alignment.reasoning,
+      matchedClusters: alignment.matchedClusters,
+      supportingBuilds: supportingBuilds.length > 0 ? supportingBuilds : ['CircuitHeroes', 'MotionX'],
+      valueFrame,
+      suggestedAction: actions[category] || 'Explore collaboration opportunity',
+      confidence: Math.min(100, alignment.total + (alignment.matchedClusters.length * 5)),
+    });
+  }
+  
+  // Sort by alignment score
+  opportunities.sort((a, b) => b.alignmentScore - a.alignmentScore);
+  
+  return opportunities;
+}
 
 /**
  * Detect learning gaps from universe data
@@ -364,111 +830,6 @@ async function detectLearningGaps(db: D1Database): Promise<any[]> {
   gaps.sort((a, b) => b.roi_score - a.roi_score);
   
   return gaps.slice(0, 20); // Return top 20 gaps
-}
-
-/**
- * Detect opportunities based on current capabilities
- */
-async function detectOpportunities(db: D1Database): Promise<any[]> {
-  const opportunities: any[] = [];
-  
-  // Get current skills and their levels
-  const skills = await db.prepare(
-    `SELECT * FROM universe_nodes WHERE type = 'skill' AND verification_status = 'verified'`
-  ).all();
-  const skillIds = (skills.results || []).map((s: any) => s.id);
-  
-  // Get cluster levels
-  const clusters = await db.prepare(`SELECT * FROM universe_clusters`).all();
-  const clusterLevels: Record<string, number> = {};
-  for (const c of (clusters.results || []) as any[]) {
-    clusterLevels[c.id] = c.level || 1;
-  }
-  
-  // Get project count and awards
-  const projectCount = await db.prepare(
-    `SELECT COUNT(*) as count FROM universe_nodes WHERE type = 'project' AND verification_status = 'verified'`
-  ).first();
-  const awardCount = await db.prepare(
-    `SELECT COUNT(*) as count FROM universe_nodes WHERE type = 'award' AND verification_status = 'verified'`
-  ).first();
-  
-  // Check each opportunity pattern
-  for (const [patternId, pattern] of Object.entries(OPPORTUNITY_ENGINE_CONFIG.patterns) as [string, any][]) {
-    let confidence = 50;
-    const reasoning: string[] = [];
-    let qualifies = false;
-    
-    if (pattern.requiredSkills) {
-      const hasRequired = pattern.requiredSkills.every((s: string) => skillIds.includes(s));
-      const optionalCount = (pattern.optionalSkills || []).filter((s: string) => skillIds.includes(s)).length;
-      
-      if (hasRequired) {
-        confidence += 25;
-        reasoning.push(`Has required skills: ${pattern.requiredSkills.join(', ')}`);
-        
-        if (optionalCount > 0) {
-          confidence += optionalCount * 5;
-          reasoning.push(`Has ${optionalCount} bonus skills`);
-        }
-        
-        // Check cluster level if required
-        if (pattern.minClusterLevel) {
-          const relevantCluster = Object.entries(clusterLevels).find(([_, level]) => level >= pattern.minClusterLevel);
-          if (relevantCluster) {
-            confidence += 10;
-            reasoning.push(`Cluster level ${relevantCluster[1]} meets minimum ${pattern.minClusterLevel}`);
-            qualifies = true;
-          }
-        } else {
-          qualifies = true;
-        }
-      }
-    }
-    
-    if (pattern.requiredProjects) {
-      const count = (projectCount?.count as number) || 0;
-      if (count >= pattern.requiredProjects) {
-        confidence += 20;
-        reasoning.push(`Has ${count} projects (needs ${pattern.requiredProjects})`);
-        qualifies = true;
-      }
-    }
-    
-    if (pattern.minUniqueProjects) {
-      const count = (projectCount?.count as number) || 0;
-      if (count >= pattern.minUniqueProjects) {
-        confidence += 15;
-        reasoning.push(`Portfolio has ${count} projects`);
-        if ((awardCount?.count as number || 0) >= (pattern.minAwards || 0)) {
-          confidence += 15;
-          reasoning.push(`Has ${awardCount?.count} awards/recognitions`);
-          qualifies = true;
-        }
-      }
-    }
-    
-    if (qualifies && confidence >= 60) {
-      opportunities.push({
-        id: `opp-${patternId}-${Date.now()}`,
-        pattern_id: patternId,
-        label: patternId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        description: `Based on current skills and experience, Laksh qualifies for this opportunity type.`,
-        reasoning: reasoning.join('. '),
-        confidence_score: Math.min(100, confidence),
-        related_nodes: skillIds.slice(0, 5),
-        related_clusters: Object.keys(clusterLevels).slice(0, 3),
-        suggested_action: `Research upcoming ${patternId.replace('_', ' ')} events`,
-        timeframe: 'Next 3 months',
-        status: 'suggested',
-      });
-    }
-  }
-  
-  // Sort by confidence
-  opportunities.sort((a, b) => b.confidence_score - a.confidence_score);
-  
-  return opportunities;
 }
 
 // ============================================
@@ -1531,7 +1892,237 @@ universeApi.patch('/learning-gaps/:id', async (c) => {
   }
 });
 
-// GET /universe/opportunities - Auto-detect opportunities based on capabilities
+// ============================================
+// INTELLIGENT OPPORTUNITY ENGINE v3
+// Graph traversal + Pattern matching + LLM reasoning
+// ============================================
+
+// GET /universe/opportunities/intelligent - Graph-based intelligent opportunities with LLM
+universeApi.get('/opportunities/intelligent', async (c) => {
+  const mode = getMode(c);
+  
+  if (mode === 'public') {
+    return c.json({ success: false, error: 'Unauthorized' }, 401);
+  }
+  
+  try {
+    // Load all nodes and edges
+    const [nodesResult, edgesResult, clustersResult] = await Promise.all([
+      c.env.DB.prepare(`SELECT * FROM universe_nodes WHERE verification_status = 'verified'`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_edges WHERE verification_status = 'verified'`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_clusters`).all(),
+    ]);
+    
+    const nodes = (nodesResult.results || []).map((n: any) => ({
+      id: n.id,
+      label: n.label,
+      type: n.type,
+      description: n.description || '',
+      cluster_id: n.cluster_id,
+      impact_score: n.impact_score || 50,
+      momentum: n.momentum || 50,
+      meta: n.meta ? JSON.parse(n.meta) : {},
+      url: n.url,
+    }));
+    
+    const edges = (edgesResult.results || []).map((e: any) => ({
+      id: e.id,
+      source_id: e.source_id,
+      target_id: e.target_id,
+      type: e.type,
+      label: e.label,
+      weight: e.weight || 50,
+    }));
+    
+    const clusters = (clustersResult.results || []).map((c: any) => ({
+      id: c.id,
+      label: c.label,
+      description: c.description,
+      color: c.color,
+      level: c.level || 1,
+      momentum: c.momentum || 50,
+      core_skills: c.core_skills ? JSON.parse(c.core_skills) : [],
+    }));
+    
+    // Build Laksh's context
+    const lakshNode = nodes.find((n: any) => n.id === 'lakshveer');
+    const lakshMeta = lakshNode?.meta || {};
+    
+    // Get key builds
+    const projectNodes = nodes.filter((n: any) => n.type === 'project' || n.type === 'product');
+    const keyBuilds = projectNodes.slice(0, 5).map((n: any) => n.label);
+    
+    // Get key skills
+    const skillNodes = nodes.filter((n: any) => n.type === 'skill');
+    const keySkills = skillNodes.map((n: any) => n.label);
+    
+    // Get achievements
+    const awardNodes = nodes.filter((n: any) => n.type === 'award');
+    const keyAchievements = awardNodes.map((n: any) => n.label);
+    
+    // Get existing connections
+    const personNodes = nodes.filter((n: any) => n.type === 'person' && n.id !== 'lakshveer' && n.id !== 'capt-venkat');
+    const existingConnections = personNodes.map((n: any) => n.label);
+    
+    // Recent activity from events
+    const eventNodes = nodes.filter((n: any) => n.type === 'event');
+    const recentActivity = eventNodes.slice(0, 5).map((n: any) => n.label);
+    
+    const context: OpportunityContext = {
+      lakshProfile: {
+        age: lakshMeta.age || 8,
+        location: lakshMeta.location || 'Hyderabad, India',
+        headline: lakshNode?.description || 'Hardware + AI Systems Builder',
+        keyBuilds,
+        keySkills,
+        keyAchievements,
+      },
+      clusters,
+      recentActivity,
+      existingConnections,
+    };
+    
+    // Build enhanced graph
+    const graph = new EnhancedGraphTraversal(nodes, edges);
+    
+    // Create generator (without LLM for now - can enable later with OpenAI key)
+    const generator = new LLMOpportunityGenerator(graph, clusters, context);
+    
+    // Generate opportunities
+    const result = await generator.generateAllOpportunities();
+    
+    // Also generate using old engine for comparison/fallback
+    const oldGraph = new GraphTraversal(nodes, edges);
+    const oldGenerator = new OpportunityGenerator(oldGraph, clusters);
+    const oldOpportunities = oldGenerator.generateOpportunities();
+    
+    // Merge, dedupe by title
+    const seenTitles = new Set(result.opportunities.map(o => o.title.toLowerCase()));
+    const mergedOpps = [
+      ...result.opportunities,
+      ...oldOpportunities.filter(o => !seenTitles.has(o.title.toLowerCase())),
+    ];
+    
+    // Get node opportunity counts (for visual indicators)
+    const nodeOpportunities: Record<string, { count: number; types: string[] }> = {};
+    for (const opp of mergedOpps) {
+      for (const nodeId of opp.pathNodes) {
+        if (!nodeOpportunities[nodeId]) {
+          nodeOpportunities[nodeId] = { count: 0, types: [] };
+        }
+        nodeOpportunities[nodeId].count++;
+        if (!nodeOpportunities[nodeId].types.includes(opp.type)) {
+          nodeOpportunities[nodeId].types.push(opp.type);
+        }
+      }
+      if (opp.targetNodeId && !nodeOpportunities[opp.targetNodeId]) {
+        nodeOpportunities[opp.targetNodeId] = { count: 0, types: [] };
+      }
+      if (opp.targetNodeId) {
+        nodeOpportunities[opp.targetNodeId].count++;
+        if (!nodeOpportunities[opp.targetNodeId].types.includes(opp.type)) {
+          nodeOpportunities[opp.targetNodeId].types.push(opp.type);
+        }
+      }
+    }
+    
+    // Group by type
+    const byType = mergedOpps.reduce((acc, o) => {
+      acc[o.type] = (acc[o.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return c.json({
+      success: true,
+      opportunities: mergedOpps,
+      stats: {
+        total: mergedOpps.length,
+        byType,
+        bySource: {
+          graph: mergedOpps.filter(o => o.source === 'graph').length,
+          llm: mergedOpps.filter(o => o.source === 'llm').length,
+          hybrid: mergedOpps.filter(o => o.source === 'hybrid').length,
+          legacy: mergedOpps.filter(o => !o.source).length,
+        },
+      },
+      nodeOpportunities, // For visual indicators on graph
+      graphInfo: {
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+        clusterCount: clusters.length,
+      },
+    });
+  } catch (error) {
+    console.error('Intelligent opportunities error:', error);
+    return c.json({ success: false, error: 'Failed to generate intelligent opportunities' }, 500);
+  }
+});
+
+// GET /universe/opportunities/for-node/:nodeId - Get opportunities involving a specific node
+universeApi.get('/opportunities/for-node/:nodeId', async (c) => {
+  const mode = getMode(c);
+  
+  if (mode === 'public') {
+    return c.json({ success: false, error: 'Unauthorized' }, 401);
+  }
+  
+  try {
+    const { nodeId } = c.req.param();
+    
+    // Load all nodes and edges
+    const [nodesResult, edgesResult, clustersResult] = await Promise.all([
+      c.env.DB.prepare(`SELECT * FROM universe_nodes WHERE verification_status = 'verified'`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_edges WHERE verification_status = 'verified'`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_clusters`).all(),
+    ]);
+    
+    const nodes = (nodesResult.results || []).map((n: any) => ({
+      id: n.id,
+      label: n.label,
+      type: n.type,
+      description: n.description,
+      cluster_id: n.cluster_id,
+      impact_score: n.impact_score,
+      meta: n.meta ? JSON.parse(n.meta) : {},
+    }));
+    
+    const edges = (edgesResult.results || []).map((e: any) => ({
+      id: e.id,
+      source_id: e.source_id,
+      target_id: e.target_id,
+      type: e.type,
+      label: e.label,
+      weight: e.weight,
+    }));
+    
+    const clusters = clustersResult.results || [];
+    
+    // Build graph and generate all opportunities
+    const graph = new GraphTraversal(nodes, edges);
+    const generator = new OpportunityGenerator(graph, clusters);
+    const allOpportunities = generator.generateOpportunities();
+    
+    // Filter to opportunities involving this node
+    const nodeOpportunities = allOpportunities.filter(opp => 
+      opp.pathNodes.includes(nodeId) || opp.targetNodeId === nodeId
+    );
+    
+    // Get node details
+    const nodeDetails = graph.getNode(nodeId);
+    
+    return c.json({
+      success: true,
+      node: nodeDetails,
+      opportunities: nodeOpportunities,
+      count: nodeOpportunities.length,
+    });
+  } catch (error) {
+    console.error('Node opportunities error:', error);
+    return c.json({ success: false, error: 'Failed to get node opportunities' }, 500);
+  }
+});
+
+// GET /universe/opportunities - Auto-detect opportunities based on alignment engine
 universeApi.get('/opportunities', async (c) => {
   const mode = getMode(c);
   
@@ -1546,23 +2137,53 @@ universeApi.get('/opportunities', async (c) => {
        ORDER BY confidence_score DESC`
     ).all();
     
-    // Auto-detect opportunities
-    const autoOpps = await detectOpportunities(c.env.DB);
+    // Generate aligned opportunities using the alignment engine
+    const alignedOpps = await generateAlignedOpportunities(c.env.DB);
     
-    // Combine
+    // Combine manual + auto-detected
     const manualIds = new Set((manualOpps.results || []).map((o: any) => o.id));
     const combinedOpps = [
+      // Manual opportunities (stored in DB)
       ...(manualOpps.results || []).map((opp: any) => ({
         ...opp,
         related_nodes: JSON.parse(opp.related_nodes || '[]'),
         related_clusters: JSON.parse(opp.related_clusters || '[]'),
         is_auto_detected: false,
+        source: 'manual',
       })),
-      ...autoOpps.filter(o => !manualIds.has(o.id)).map(o => ({
-        ...o,
+      // Alignment-based opportunities
+      ...alignedOpps.filter(o => !manualIds.has(o.id)).map(o => ({
+        id: o.id,
+        label: `${o.category.charAt(0).toUpperCase() + o.category.slice(1)}: ${o.targetLabel}`,
+        description: o.reasoning,
+        reasoning: o.reasoning,
+        confidence_score: o.confidence,
+        related_nodes: [o.targetNodeId],
+        related_clusters: o.matchedClusters,
+        suggested_action: o.suggestedAction,
+        timeframe: 'immediate',
+        status: 'suggested',
         is_auto_detected: true,
+        source: 'alignment_engine',
+        // Phase A: Alignment breakdown for transparency
+        alignment: {
+          score: o.alignmentScore,
+          breakdown: o.alignmentBreakdown,
+          matchedClusters: o.matchedClusters,
+          supportingBuilds: o.supportingBuilds,
+        },
+        // Phase A: Value framing for dual-value communication
+        valueFrame: o.valueFrame,
+        category: o.category,
+        targetNodeId: o.targetNodeId,
       })),
     ];
+    
+    // Group by category for stats
+    const byCategory = alignedOpps.reduce((acc, o) => {
+      acc[o.category] = (acc[o.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
     
     return c.json({
       success: true,
@@ -1570,17 +2191,131 @@ universeApi.get('/opportunities', async (c) => {
       stats: {
         total: combinedOpps.length,
         manual: manualOpps.results?.length || 0,
-        autoDetected: autoOpps.length,
-        byPattern: autoOpps.reduce((acc, o) => {
-          acc[o.pattern_id] = (acc[o.pattern_id] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
+        autoDetected: alignedOpps.length,
+        byCategory,
+        alignmentThreshold: ALIGNMENT_ENGINE_CONFIG.opportunityThreshold,
       },
-      config: OPPORTUNITY_ENGINE_CONFIG,
+      config: ALIGNMENT_ENGINE_CONFIG,
     });
   } catch (error) {
     console.error('Get opportunities error:', error);
     return c.json({ success: false, error: 'Failed to fetch opportunities' }, 500);
+  }
+});
+
+// GET /universe/alignment/:nodeId - Get alignment score for a specific node
+universeApi.get('/alignment/:nodeId', async (c) => {
+  const mode = getMode(c);
+  
+  if (mode === 'public') {
+    return c.json({ success: false, error: 'Unauthorized' }, 401);
+  }
+  
+  try {
+    const { nodeId } = c.req.param();
+    
+    // Get the target node
+    const targetNode = await c.env.DB.prepare(
+      `SELECT * FROM universe_nodes WHERE id = ?`
+    ).bind(nodeId).first();
+    
+    if (!targetNode) {
+      return c.json({ success: false, error: 'Node not found' }, 404);
+    }
+    
+    // Get Laksh's data
+    const [clustersResult, buildsResult, skillsResult] = await Promise.all([
+      c.env.DB.prepare(`SELECT * FROM universe_clusters`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_nodes WHERE type = 'project' AND verification_status = 'verified'`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_nodes WHERE type = 'skill' AND verification_status = 'verified'`).all(),
+    ]);
+    
+    const clusters = clustersResult.results || [];
+    const builds = buildsResult.results || [];
+    const skills = skillsResult.results || [];
+    
+    // Calculate alignment
+    const alignment = await calculateAlignment(c.env.DB, targetNode, clusters, builds, skills);
+    
+    // Determine category
+    const nodeDesc = ((targetNode as any).description || '').toLowerCase();
+    let category = 'collab';
+    if (nodeDesc.includes('grant')) category = 'grant';
+    else if (nodeDesc.includes('accelerator') || nodeDesc.includes('incubator')) category = 'partnership';
+    else if (nodeDesc.includes('hackathon') || nodeDesc.includes('competition')) category = 'invite';
+    else if (nodeDesc.includes('sponsor')) category = 'sponsorship';
+    else if (nodeDesc.includes('media')) category = 'pitch';
+    else if ((targetNode as any).type === 'person') category = 'learning';
+    
+    // Generate value framing
+    const valueFrame = generateValueFrame(alignment, targetNode, category, clusters, builds);
+    
+    // Find supporting builds
+    const supportingBuilds = builds
+      .filter((b: any) => alignment.matchedClusters.some(c => 
+        b.cluster_id?.toLowerCase().includes(c.toLowerCase().replace(/\s+/g, '-'))
+      ))
+      .slice(0, 5)
+      .map((b: any) => ({
+        id: b.id,
+        label: b.label,
+        clusterId: b.cluster_id,
+      }));
+    
+    return c.json({
+      success: true,
+      node: {
+        id: (targetNode as any).id,
+        label: (targetNode as any).label,
+        type: (targetNode as any).type,
+        description: (targetNode as any).description,
+      },
+      alignment: {
+        score: alignment.total,
+        meetsThreshold: alignment.total >= ALIGNMENT_ENGINE_CONFIG.opportunityThreshold,
+        threshold: ALIGNMENT_ENGINE_CONFIG.opportunityThreshold,
+        breakdown: {
+          clusterOverlap: {
+            score: Math.round(alignment.breakdown.clusterOverlap),
+            weight: ALIGNMENT_ENGINE_CONFIG.weights.clusterOverlap,
+            weighted: Math.round(alignment.breakdown.clusterOverlap * ALIGNMENT_ENGINE_CONFIG.weights.clusterOverlap),
+            matchedClusters: alignment.matchedClusters,
+          },
+          buildRelevance: {
+            score: Math.round(alignment.breakdown.buildRelevance),
+            weight: ALIGNMENT_ENGINE_CONFIG.weights.buildRelevance,
+            weighted: Math.round(alignment.breakdown.buildRelevance * ALIGNMENT_ENGINE_CONFIG.weights.buildRelevance),
+            supportingBuilds,
+          },
+          stageCompatibility: {
+            score: Math.round(alignment.breakdown.stageCompatibility),
+            weight: ALIGNMENT_ENGINE_CONFIG.weights.stageCompatibility,
+            weighted: Math.round(alignment.breakdown.stageCompatibility * ALIGNMENT_ENGINE_CONFIG.weights.stageCompatibility),
+          },
+          recency: {
+            score: Math.round(alignment.breakdown.recency),
+            weight: ALIGNMENT_ENGINE_CONFIG.weights.recency,
+            weighted: Math.round(alignment.breakdown.recency * ALIGNMENT_ENGINE_CONFIG.weights.recency),
+          },
+          domainSimilarity: {
+            score: Math.round(alignment.breakdown.domainSimilarity),
+            weight: ALIGNMENT_ENGINE_CONFIG.weights.domainSimilarity,
+            weighted: Math.round(alignment.breakdown.domainSimilarity * ALIGNMENT_ENGINE_CONFIG.weights.domainSimilarity),
+            matchedDomains: alignment.matchedDomains,
+          },
+        },
+        reasoning: alignment.reasoning,
+      },
+      valueFrame,
+      suggestedCategory: category,
+      config: {
+        weights: ALIGNMENT_ENGINE_CONFIG.weights,
+        threshold: ALIGNMENT_ENGINE_CONFIG.opportunityThreshold,
+      },
+    });
+  } catch (error) {
+    console.error('Get alignment error:', error);
+    return c.json({ success: false, error: 'Failed to calculate alignment' }, 500);
   }
 });
 
@@ -1680,7 +2415,7 @@ universeApi.get('/outreach-queue', async (c) => {
 });
 
 // ============================================
-// POST /universe/generate-outreach - Generate outreach draft for a node
+// POST /universe/generate-outreach - Generate alignment-aware outreach draft
 // ============================================
 universeApi.post('/generate-outreach', async (c) => {
   const mode = getMode(c);
@@ -1690,7 +2425,7 @@ universeApi.post('/generate-outreach', async (c) => {
   }
   
   try {
-    const { nodeId, context, specificAsk } = await c.req.json();
+    const { nodeId, context, specificAsk, opportunityId } = await c.req.json();
     
     // Get the target node
     const targetNode = await c.env.DB.prepare(
@@ -1701,47 +2436,119 @@ universeApi.post('/generate-outreach', async (c) => {
       return c.json({ success: false, error: 'Node not found' }, 404);
     }
     
-    // Get Laksh's connected achievements and projects
-    const achievements = await c.env.DB.prepare(
-      `SELECT n.* FROM universe_nodes n
-       INNER JOIN universe_edges e ON n.id = e.target_id
-       WHERE e.source_id = 'lakshveer' AND n.type IN ('award', 'event', 'project')
-       ORDER BY n.impact_score DESC
-       LIMIT 5`
-    ).all();
+    // Get Laksh's data for alignment calculation
+    const [clustersResult, buildsResult, skillsResult] = await Promise.all([
+      c.env.DB.prepare(`SELECT * FROM universe_clusters`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_nodes WHERE type = 'project' AND verification_status = 'verified'`).all(),
+      c.env.DB.prepare(`SELECT * FROM universe_nodes WHERE type = 'skill' AND verification_status = 'verified'`).all(),
+    ]);
     
-    // Generate draft (simplified - in production would use AI)
-    const proofLinks = (achievements.results || [])
-      .filter((a: any) => a.url)
-      .map((a: any) => a.url);
+    const clusters = clustersResult.results || [];
+    const builds = buildsResult.results || [];
+    const skills = skillsResult.results || [];
     
+    // Calculate alignment for this specific target
+    const alignment = await calculateAlignment(c.env.DB, targetNode, clusters, builds, skills);
+    
+    // Determine opportunity category from node type
+    const nodeDesc = ((targetNode as any).description || '').toLowerCase();
+    let category = 'collab';
+    if (nodeDesc.includes('grant')) category = 'grant';
+    else if (nodeDesc.includes('accelerator') || nodeDesc.includes('incubator')) category = 'partnership';
+    else if (nodeDesc.includes('hackathon') || nodeDesc.includes('competition')) category = 'invite';
+    else if (nodeDesc.includes('sponsor')) category = 'sponsorship';
+    else if (nodeDesc.includes('media')) category = 'pitch';
+    else if ((targetNode as any).type === 'person') category = 'learning';
+    
+    // Generate value framing
+    const valueFrame = generateValueFrame(alignment, targetNode, category, clusters, builds);
+    
+    // Find supporting builds that match the alignment
+    const supportingBuilds = builds
+      .filter((b: any) => alignment.matchedClusters.some(c => 
+        b.cluster_id?.toLowerCase().includes(c.toLowerCase().replace(/\s+/g, '-'))
+      ))
+      .slice(0, 3);
+    
+    // Use CircuitHeroes and MotionX if no specific matches
+    const relevantBuilds = supportingBuilds.length > 0 
+      ? supportingBuilds 
+      : builds.filter((b: any) => ['circuitheroes', 'motionx', 'drishtikon-yantra'].includes(b.id)).slice(0, 2);
+    
+    // Get key build highlights
+    const buildHighlights = VALUE_FRAMING_CONFIG.buildHighlights;
+    const highlightedBuilds = relevantBuilds.map((b: any) => {
+      const highlight = buildHighlights.find(h => h.id === b.id);
+      return {
+        label: b.label,
+        description: b.description,
+        highlight: highlight?.highlight || b.description?.split('.')[0],
+      };
+    });
+    
+    // Generate subject line based on alignment
+    const subjectOptions: Record<string, string> = {
+      grant: `Young hardware builder seeking ${(targetNode as any).label} support`,
+      invite: `8yo builder demo request for ${(targetNode as any).label}`,
+      sponsorship: `Partnership opportunity: Young hardware+AI builder`,
+      partnership: `Collaboration interest from young hardware builder`,
+      collab: `From an 8-year-old building at the hardware+AI intersection`,
+      learning: `Seeking mentorship: 8yo hardware builder`,
+      pitch: `Story pitch: 8-year-old hardware+AI builder from India`,
+      scholarship: `Application inquiry: Young builder seeking ${(targetNode as any).label}`,
+    };
+    
+    // Generate draft with alignment-aware content
     const draft = {
       id: `outreach-${Date.now()}`,
       target_node_id: nodeId,
       target_name: (targetNode as any).label,
-      target_contact: null, // Would be populated from meta
-      trigger_type: 'manual',
-      trigger_node_id: null,
-      subject: `Connecting from an 8-year-old hardware builder`,
-      draft: `Hi ${(targetNode as any).label},
+      target_contact: null,
+      trigger_type: opportunityId ? 'opportunity' : 'manual',
+      trigger_node_id: opportunityId || null,
+      subject: subjectOptions[category] || subjectOptions.collab,
+      
+      // Enhanced draft with alignment + value framing
+      draft: `Hi ${(targetNode as any).label.split(' ')[0]},
 
-I'm Laksh, an 8-year-old hardware and AI systems builder from Hyderabad. I've been building since I was 4.
+I'm Laksh, an 8-year-old hardware and AI systems builder from Hyderabad, India. I've been building since I was 4.
 
-${context || `I came across your work and thought there might be an opportunity to connect.`}
+${alignment.reasoning ? `I found ${(targetNode as any).label} particularly interesting because ${alignment.reasoning.toLowerCase()}.` : `I came across your work and thought there might be an opportunity to connect.`}
 
-Some of my recent work:
-${(achievements.results || []).slice(0, 3).map((a: any) => `• ${a.label}: ${a.description}`).join('\n')}
+${context || ''}
 
-${specificAsk || `I'd love to connect and learn more about your work.`}
+**What I've built:**
+${highlightedBuilds.map((b: any) => `• **${b.label}**: ${b.highlight}`).join('\n')}
+
+**Why this matters for both of us:**
+${valueFrame.mutualBenefit}
+
+${specificAsk || valueFrame.forLaksh[0]?.description ? `**My ask:** ${specificAsk || `I'd love to explore ${category === 'grant' ? 'funding support' : category === 'learning' ? 'mentorship' : category === 'invite' ? 'participating in your events' : 'collaboration'} given our alignment on ${alignment.matchedClusters[0] || 'hardware+AI'}.`}` : ''}
 
 Best,
 Laksh
-(with help from Dad - @CaptVenk)`,
+(with help from Dad - @CaptVenk on X)
+
+---
+*This is a draft. Review before sending.*`,
+      
       context: context || null,
       specific_ask: specificAsk || null,
-      proof_links: JSON.stringify(proofLinks),
+      proof_links: JSON.stringify(relevantBuilds.map((b: any) => b.url).filter(Boolean)),
       status: 'draft',
       created_at: new Date().toISOString(),
+      
+      // Phase A: Include alignment metadata for transparency
+      alignment_data: {
+        score: alignment.total,
+        breakdown: alignment.breakdown,
+        matchedClusters: alignment.matchedClusters,
+        matchedDomains: alignment.matchedDomains,
+        reasoning: alignment.reasoning,
+      },
+      value_frame: valueFrame,
+      category,
+      supporting_builds: highlightedBuilds,
     };
     
     // Save to queue
@@ -1761,7 +2568,12 @@ Laksh
       draft.status
     ).run();
     
-    return c.json({ success: true, draft });
+    return c.json({ 
+      success: true, 
+      draft,
+      alignment: draft.alignment_data,
+      valueFrame: draft.value_frame,
+    });
   } catch (error) {
     console.error('Generate outreach error:', error);
     return c.json({ success: false, error: 'Failed to generate outreach' }, 500);
