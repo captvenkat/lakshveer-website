@@ -40,6 +40,16 @@ import { VerificationDashboard } from "@/components/VerificationDashboard";
 import { GapsOpportunitiesPanel } from "@/components/GapsOpportunitiesPanel";
 
 // ============================================
+// FEATURE FLAGS - PHASE 1 SURFACE CLEANUP
+// ============================================
+const FEATURE_FLAGS = {
+  SHOW_BADGES_PUBLIC: false,           // Opportunity count badges (private only now)
+  SHOW_GLOW_EFFECTS: false,            // Pulsing glow on high-opportunity nodes
+  SHOW_CONFIDENCE_SCORES_PUBLIC: false, // Confidence scores visible in public
+  SHOW_STATS_PANEL_PUBLIC: false       // Stats dashboards in public mode
+};
+
+// ============================================
 // TYPES
 // ============================================
 
@@ -638,7 +648,15 @@ function Universe() {
         ctx.fillText(node.label, node.x, node.y + size + 4);
       }
       
-      // Phase A: Opportunity indicator (private mode only)
+      /* ============================================
+       * PHASE 1 CLEANUP: Badge & Glow Effects Disabled
+       * These visual indicators removed from public mode
+       * Can be re-enabled via FEATURE_FLAGS if needed
+       * ============================================ */
+      
+      // Phase A: Opportunity indicator (NOW DISABLED - was private mode only)
+      // Keeping code for potential admin dashboard use
+      /*
       const oppCount = nodeOpportunities[node.id]?.count || 0;
       if (privateMode && oppCount > 0 && isHighlighted) {
         const oppBadgeX = node.x - size * 0.7;
@@ -674,8 +692,10 @@ function Universe() {
         ctx.textBaseline = 'middle';
         ctx.fillText(oppCount > 9 ? '9+' : oppCount.toString(), oppBadgeX, oppBadgeY);
       }
+      */
       
-      // Phase 3: Verification badge (private mode only)
+      // Phase 3: Verification badge (NOW DISABLED - was private mode only)
+      /*
       if (privateMode && node.verification_status === 'verified' && isHighlighted) {
         // Draw verified checkmark badge
         const badgeX = node.x + size * 0.7;
@@ -697,8 +717,10 @@ function Universe() {
         ctx.lineTo(badgeX + 2, badgeY - 1.2);
         ctx.stroke();
       }
+      */
       
-      // Phase 3: Pending/inferred indicator (private mode only)
+      // Phase 3: Pending/inferred indicator (NOW DISABLED - was private mode only)
+      /*
       if (privateMode && (node.verification_status === 'pending' || node.verification_status === 'inferred') && isHighlighted) {
         const indicatorX = node.x + size * 0.7;
         const indicatorY = node.y - size * 0.7;
@@ -716,6 +738,7 @@ function Universe() {
         ctx.textBaseline = 'middle';
         ctx.fillText(node.verification_status === 'pending' ? '?' : '*', indicatorX, indicatorY);
       }
+      */
     });
     
     ctx.restore();

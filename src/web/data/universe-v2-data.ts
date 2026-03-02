@@ -900,7 +900,8 @@ export const nodes: UniverseNode[] = [
     id: 'august-fest',
     label: 'August Fest 2025',
     type: 'event',
-    description: 'Panel discussion as featured speaker.',
+    description: 'Panel discussion as featured speaker. Official listing at theaugustfest.com/speakers.',
+    url: 'https://theaugustfest.com/speakers/',
     timestamp: '2025-08',
     year: 2025,
     growthWeight: 55,
@@ -1406,6 +1407,203 @@ export const nodes: UniverseNode[] = [
     dependencies: ['malpani-grant', 'the-residency', 'cap-hardware-business'],
     meta: { timeframe: '12 months', probability: 35 }
   },
+  
+  // ============================================
+  // NEW MEDIA MENTIONS - MARCH 2026 UPDATE
+  // ============================================
+  
+  // MaiT AI Agent Project (if not exists elsewhere)
+  {
+    id: 'mait-agent',
+    label: 'MaiT AI Agent',
+    type: 'project',
+    description: 'AI agent that controls devices via Telegram messaging app.',
+    timestamp: '2025-02',
+    year: 2025,
+    growthWeight: 80,
+    impactScore: 85,
+    momentum: 0,
+    cluster: 'ai-ml',
+    status: 'completed',
+    dependencies: ['python', 'telegram-api', 'home-automation'],
+    meta: { featured: 'Financial Express' }
+  },
+  
+  // Yugaantar 2025 Event
+  {
+    id: 'yugaantar-2025',
+    label: 'Yugaantar 2025',
+    type: 'event',
+    description: 'Student-led tech festival at Scaler School of Technology. Participated in demos and competitions.',
+    url: 'https://www.jagranjosh.com/articles/yugaantar-2025-student-led-festival-at-sst-blends-technology-competition-and-culture-1800007602-1',
+    timestamp: '2025-01',
+    year: 2025,
+    growthWeight: 70,
+    impactScore: 75,
+    momentum: 0,
+    cluster: 'public-speaking',
+    status: 'completed',
+    dependencies: ['scaler-school']
+  },
+  
+  // Scaler School Organization
+  {
+    id: 'scaler-school',
+    label: 'Scaler School of Technology',
+    type: 'organization',
+    description: 'Tech education institution hosting student-led tech festivals.',
+    url: 'https://www.scaler.com/',
+    timestamp: '2025-01',
+    year: 2025,
+    growthWeight: 60,
+    impactScore: 70,
+    momentum: 0,
+    cluster: 'network',
+    status: 'completed'
+  },
+  
+  // MEDIA COVERAGE NODES
+  {
+    id: 'media-jagran-josh-yugaantar',
+    label: 'Jagran Josh Coverage',
+    type: 'endorsement',
+    description: 'National education media coverage of Lakshveer at Yugaantar 2025 tech fest.',
+    url: 'https://www.jagranjosh.com/articles/yugaantar-2025-student-led-festival-at-sst-blends-technology-competition-and-culture-1800007602-1',
+    timestamp: '2025-01',
+    year: 2025,
+    growthWeight: 60,
+    impactScore: 65,
+    momentum: 0,
+    cluster: 'recognition',
+    status: 'completed',
+    dependencies: ['yugaantar-2025']
+  },
+  {
+    id: 'media-sharav-medium',
+    label: 'Medium: Tech Wunderkind',
+    type: 'endorsement',
+    description: 'In-depth feature article by Sharav Arora: "Meet India\'s 8-Year-Old Tech Wunderkind".',
+    url: 'https://medium.com/@sharavarora80/meet-indias-8-year-old-tech-wunderkind-how-lakshveer-rao-is-redefining-childhood-innovation-9b76c12da34e',
+    timestamp: '2025-02',
+    year: 2025,
+    growthWeight: 70,
+    impactScore: 75,
+    momentum: 0,
+    cluster: 'recognition',
+    status: 'completed'
+  },
+  {
+    id: 'media-chekodi-telugu',
+    label: 'Chekodi Telugu Feature',
+    type: 'endorsement',
+    description: 'Regional Telugu media feature on hardware achievements at age 8.',
+    url: 'https://chekodi.com/p/meet-lakshveer-rao-just-8-years-age-lo-hardware-s-96384',
+    timestamp: '2025-02',
+    year: 2025,
+    growthWeight: 55,
+    impactScore: 60,
+    momentum: 0,
+    cluster: 'recognition',
+    status: 'completed',
+    meta: { language: 'Telugu', regional: true }
+  },
+  {
+    id: 'media-fe-scaler-event',
+    label: 'Financial Express: Tech Fest',
+    type: 'endorsement',
+    description: 'Financial Express coverage of Scaler tech fest with massive crowd and Lakshveer\'s participation.',
+    url: 'https://www.financialexpress.com/jobs-career/education-scaler-school-of-technology-hosts-student-led-tech-fest-draws-massive-crowd-4114508/',
+    timestamp: '2025-01',
+    year: 2025,
+    growthWeight: 70,
+    impactScore: 80,
+    momentum: 0,
+    cluster: 'recognition',
+    status: 'completed',
+    dependencies: ['yugaantar-2025'],
+    meta: { publication: 'Financial Express', tier: 'national' }
+  },
+  {
+    id: 'media-fe-mait',
+    label: 'Financial Express: MaiT Feature',
+    type: 'endorsement',
+    description: 'Financial Express technology feature: 8-year-old creates AI agent to control devices via Telegram.',
+    url: 'https://www.financialexpress.com/life/technology-meet-lakshveer-the-8-year-old-who-created-an-ai-agent-to-control-devices-via-telegram-messaging-4159964/',
+    timestamp: '2025-02',
+    year: 2025,
+    growthWeight: 75,
+    impactScore: 85,
+    momentum: 0,
+    cluster: 'recognition',
+    status: 'completed',
+    dependencies: ['mait-agent'],
+    meta: { publication: 'Financial Express', tier: 'national', category: 'technology' }
+  },
+  
+  // INTERVIEWS & SOCIAL MEDIA
+  {
+    id: 'interview-sravya-fb',
+    label: 'Sravya Interview',
+    type: 'event',
+    description: 'Video interview with Sravya published on Facebook.',
+    url: 'https://www.facebook.com/watch/?v=911725544741111',
+    timestamp: '2025-02',
+    year: 2025,
+    growthWeight: 60,
+    impactScore: 65,
+    momentum: 0,
+    cluster: 'public-speaking',
+    status: 'completed',
+    meta: { format: 'video', platform: 'Facebook' }
+  },
+  {
+    id: 'event-kids-carnival-hitex',
+    label: 'Kids Carnival Hitex',
+    type: 'event',
+    description: 'Participation and demo at Kids Carnival, Hitex Hyderabad.',
+    url: 'https://www.instagram.com/reel/DEHVEtWJkf1/',
+    timestamp: '2024-12',
+    year: 2024,
+    growthWeight: 50,
+    impactScore: 55,
+    momentum: 0,
+    cluster: 'public-speaking',
+    status: 'completed',
+    meta: { location: 'Hitex Hyderabad', format: 'demo' }
+  },
+  {
+    id: 'endorsement-inav-param',
+    label: 'Inav LinkedIn Post',
+    type: 'endorsement',
+    description: 'LinkedIn recognition post by Inav Amsi (Param Foundation) about meeting Lakshveer at hackathon.',
+    url: 'https://www.linkedin.com/posts/inavamsi_met-this-8-year-old-lakshveer-in-our-hackathon-activity-7418284045475659776-zoBR/',
+    timestamp: '2024-12',
+    year: 2024,
+    growthWeight: 65,
+    impactScore: 70,
+    momentum: 0,
+    cluster: 'network',
+    status: 'completed',
+    dependencies: ['param-makeathon', 'param-foundation']
+  },
+  
+  // AUGUST FEST ADDITIONAL RECOGNITION
+  {
+    id: 'august-fest-speaker-profile',
+    label: 'August Fest Speaker Page',
+    type: 'endorsement',
+    description: 'Official speaker profile on August Fest 2025 website.',
+    url: 'https://theaugustfest.com/speaker/r-lakshveer-rao/',
+    timestamp: '2025-08',
+    year: 2025,
+    growthWeight: 70,
+    impactScore: 75,
+    momentum: 0,
+    cluster: 'recognition',
+    status: 'completed',
+    dependencies: ['august-fest'],
+    meta: { eventType: 'speaker_profile', official: true }
+  },
 ];
 
 // ============================================
@@ -1523,6 +1721,33 @@ export const edges: UniverseEdge[] = [
   // Media/influence connections
   { id: 'e140', source: 'beats-in-brief', target: 'lakshveer', type: 'ENDORSED_BY', label: 'featured', weight: 60 },
   { id: 'e141', source: 'startupnews-feature', target: 'lakshveer', type: 'ENDORSED_BY', label: 'featured', weight: 55 },
+  
+  // ============================================
+  // NEW MEDIA EDGES - MARCH 2026 UPDATE
+  // ============================================
+  
+  // MaiT project connections
+  { id: 'e200', source: 'python', target: 'mait-agent', type: 'BUILT_WITH', label: 'built with', weight: 80 },
+  { id: 'e201', source: 'mait-agent', target: 'media-fe-mait', type: 'ENABLED_BY', label: 'featured in', weight: 85 },
+  
+  // Yugaantar event connections
+  { id: 'e202', source: 'scaler-school', target: 'yugaantar-2025', type: 'ENABLED_BY', label: 'hosted', weight: 85 },
+  { id: 'e203', source: 'lakshveer', target: 'yugaantar-2025', type: 'PRESENTED_AT', label: 'participated', weight: 75 },
+  { id: 'e204', source: 'yugaantar-2025', target: 'media-jagran-josh-yugaantar', type: 'ENABLED_BY', label: 'covered by', weight: 70 },
+  { id: 'e205', source: 'yugaantar-2025', target: 'media-fe-scaler-event', type: 'ENABLED_BY', label: 'covered by', weight: 80 },
+  
+  // Media endorsement connections
+  { id: 'e206', source: 'media-sharav-medium', target: 'lakshveer', type: 'ENDORSED_BY', label: 'featured', weight: 75 },
+  { id: 'e207', source: 'media-chekodi-telugu', target: 'lakshveer', type: 'ENDORSED_BY', label: 'featured', weight: 65 },
+  
+  // Interview and social media connections
+  { id: 'e208', source: 'interview-sravya-fb', target: 'lakshveer', type: 'PRESENTED_AT', label: 'interviewed', weight: 65 },
+  { id: 'e209', source: 'event-kids-carnival-hitex', target: 'lakshveer', type: 'PRESENTED_AT', label: 'participated', weight: 55 },
+  { id: 'e210', source: 'endorsement-inav-param', target: 'param-makeathon', type: 'ENDORSED_BY', label: 'recognition from', weight: 70 },
+  { id: 'e211', source: 'param-foundation', target: 'endorsement-inav-param', type: 'ENDORSED_BY', label: 'posted by', weight: 65 },
+  
+  // August Fest connections
+  { id: 'e212', source: 'august-fest', target: 'august-fest-speaker-profile', type: 'ENABLED_BY', label: 'official profile', weight: 80 },
 ];
 
 // ============================================
