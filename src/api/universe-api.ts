@@ -2730,4 +2730,146 @@ universeApi.post('/edges', async (c) => {
   }
 });
 
+// ============================================
+// WEEKLY OS ENDPOINT
+// ============================================
+
+universeApi.get('/weekly-os', async (c) => {
+  const privateMode = isPrivateModeRequest(c);
+  
+  if (!privateMode) {
+    return c.json({
+      success: false,
+      error: 'Weekly OS only available in private mode'
+    }, 403);
+  }
+  
+  try {
+    const { detectEnergyMode, getWeekStart, formatDate } = await import('./energy-check');
+    const { getWeeklyOverrides, getOverridesSummary, getOverriddenEnergyMode } = await import('./human-override');
+    const { compressToWeeklyOS } = await import('./weekly-compression');
+    const { getIntelligentOpportunities } = await import('./opportunity-intelligence');
+    
+    // Get current week (Monday-Sunday)
+    const weekStart = getWeekStart();
+    
+    // Fetch all opportunities
+    const opportunities = await getIntelligentOpportunities(c.env.DB);
+    
+    // Detect energy mode
+    const energyMetrics = await detectEnergyMode(c.env.DB, weekStart);
+    
+    // Get weekly overrides
+    const overrides = await getWeeklyOverrides(c.env.DB, weekStart);
+    
+    // Apply energy mode override if exists
+    const overriddenMode = getOverriddenEnergyMode(overrides);
+    const finalEnergyMode = overriddenMode || energyMetrics.mode;
+    
+    // Run compression
+    const moves = await compressToWeeklyOS(
+      c.env.DB,
+      opportunities,
+      finalEnergyMode,
+      overrides
+    );
+    
+    // Build output
+    const output = {
+      success: true,
+      week: formatDate(weekStart),
+      moves,
+      energyMode: finalEnergyMode,
+      energyMetrics,
+      overridesSummary: getOverridesSummary(overrides),
+      generatedAt: new Date().toISOString()
+    };
+    
+    return c.json(output);
+  } catch (error) {
+    console.error('Weekly OS error:', error);
+    return c.json({ 
+      success: false, 
+      error: 'Failed to generate weekly OS',
+      details: error instanceof Error ? error.message : String(error)
+    }, 500);
+  }
+});
+
+// ============================================
+// OVERRIDE MANAGEMENT ENDPOINTS
+// ============================================
+
+// Get overrides for a specific week
+universeApi.get('/overrides/:week', async (c) => {
+  const privateMode = isPrivateModeRequest(c);
+  
+  if (!privateMode) {
+    return c.json({ success: false, error: 'Private mode required' }, 403);
+  }
+  
+  try {
+    const { getWeeklyOverrides } = await import('./human-override');
+    const weekStr = c.req.param('week');
+    const weekStart = new Date(weekStr);
+    
+    const overrides = await getWeeklyOverrides(c.env.DB, weekStart);
+    
+    return c.json({ success: true, overrides });
+  } catch (error) {
+    console.error('Get overrides error:', error);
+    return c.json({ success: false, error: 'Failed to get overrides' }, 500);
+  }
+});
+
+// Create new override
+universeApi.post('/overrides', async (c) => {
+  const privateMode = isPrivateModeRequest(c);
+  
+  if (!privateMode) {
+    return c.json({ success: false, error: 'Private mode required' }, 403);
+  }
+  
+  try {
+    const { createOverride } = await import('./human-override');
+    const data = await c.req.json();
+    
+    const weekStart = new Date(data.weekStart);
+    const override = await createOverride(
+      c.env.DB,
+      weekStart,
+      data.type,
+      data.reason,
+      data.config,
+      data.createdBy || 'venkat'
+    );
+    
+    return c.json({ success: true, override });
+  } catch (error) {
+    console.error('Create override error:', error);
+    return c.json({ success: false, error: 'Failed to create override' }, 500);
+  }
+});
+
+// Delete override
+universeApi.delete('/overrides/:id', async (c) => {
+  const privateMode = isPrivateModeRequest(c);
+  
+  if (!privateMode) {
+    return c.json({ success: false, error: 'Private mode required' }, 403);
+  }
+  
+  try {
+    const { deleteOverride } = await import('./human-override');
+    const overrideId = c.req.param('id');
+    
+    const success = await deleteOverride(c.env.DB, overrideId);
+    
+    return c.json({ success });
+  } catch (error) {
+    console.error('Delete override error:', error);
+    return c.json({ success: false, error: 'Failed to delete override' }, 500);
+  }
+});
+
 export default universeApi;

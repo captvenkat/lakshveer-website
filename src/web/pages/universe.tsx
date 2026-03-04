@@ -38,6 +38,7 @@ import { NodeWorldPanel } from "@/components/NodeWorldPanel";
 import { ClusterScoreCard } from "@/components/ClusterScoreCard";
 import { VerificationDashboard } from "@/components/VerificationDashboard";
 import { GapsOpportunitiesPanel } from "@/components/GapsOpportunitiesPanel";
+import { WeeklyOSPanel } from "@/components/WeeklyOSPanel";
 
 // ============================================
 // FEATURE FLAGS - PHASE 1 SURFACE CLEANUP
@@ -181,6 +182,9 @@ function Universe() {
   
   // Phase 4: Gaps & Opportunities Panel
   const [showGapsPanel, setShowGapsPanel] = useState(false);
+  
+  // Phase 5: Weekly OS Panel (Week 2 - Mentor Intelligence)
+  const [showWeeklyOS, setShowWeeklyOS] = useState(false);
   
   // Phase A: Node opportunity counts for visual indicators
   const [nodeOpportunities, setNodeOpportunities] = useState<Record<string, { count: number; types: string[] }>>({});
@@ -1018,6 +1022,24 @@ function Universe() {
               </button>
             )}
             
+            {/* Phase 5: Weekly OS Button (Week 2 - Mentor Intelligence) */}
+            {privateMode && (
+              <button
+                onClick={() => setShowWeeklyOS(true)}
+                className="w-full p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg text-left hover:bg-purple-500/20 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium text-purple-400">Weekly OS</span>
+                    <p className="text-xs text-white/40">2-4 next moves with mentor reasoning</p>
+                  </div>
+                  <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+              </button>
+            )}
+            
             {/* Capability Clusters - API Powered with Computed Scores */}
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -1608,6 +1630,11 @@ function Universe() {
             />
           </div>
         </div>
+      )}
+      
+      {/* Phase 5: Weekly OS Modal (Week 2 - Mentor Intelligence) */}
+      {showWeeklyOS && privateMode && (
+        <WeeklyOSPanel onClose={() => setShowWeeklyOS(false)} />
       )}
       
       {/* Password Modal for Private Mode */}
