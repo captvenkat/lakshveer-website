@@ -76,11 +76,30 @@ export const portfolioData = {
   
   // Media coverage
   media: [
+    // Press & News Outlets
+    { name: "Financial Express - MotionX AI Feature", url: "https://www.financialexpress.com/life/technology-meet-lakshveer-the-8-year-old-who-created-an-ai-agent-to-control-devices-via-telegram-messaging-4159964/" },
+    { name: "Financial Express - Scaler Tech Fest", url: "https://www.financialexpress.com/jobs-career/education-scaler-school-of-technology-hosts-student-led-tech-fest-draws-massive-crowd-4114508/" },
+    { name: "Jagran Josh - Yugaantar 2025", url: "https://www.jagranjosh.com/articles/yugaantar-2025-student-led-festival-at-sst-blends-technology-competition-and-culture-1800007602-1" },
     { name: "Beats in Brief", url: "https://beatsinbrief.com/2026/01/11/lakshveer-rao-8-year-old-hardware-startup-founder-india/" },
-    { name: "Runtime", url: "https://www.instagram.com/reel/DQJ34sdjxA0/" },
-    { name: "Lion Circuits", url: "https://x.com/LionCircuits/status/1950132910667026934" },
-    { name: "ThinkTac", url: "https://www.youtube.com/watch?v=8qmvDz-TJTE" },
+    { name: "Chekodi Telugu Media", url: "https://chekodi.com/p/meet-lakshveer-rao-just-8-years-age-lo-hardware-s-96384" },
     { name: "Maverick News", url: "https://mavericknews30.com/?p=103498" },
+    
+    // Long-form Articles
+    { name: "Medium - Tech Wunderkind by Sharav Arora", url: "https://medium.com/@sharavarora80/meet-indias-8-year-old-tech-wunderkind-how-lakshveer-rao-is-redefining-childhood-innovation-9b76c12da34e" },
+    
+    // Video Interviews
+    { name: "ThinkTac YouTube Interview", url: "https://www.youtube.com/watch?v=8qmvDz-TJTE" },
+    { name: "Sravya Interview (Facebook)", url: "https://www.facebook.com/watch/?v=911725544741111" },
+    
+    // Social Media Features
+    { name: "Runtime Instagram", url: "https://www.instagram.com/reel/DQJ34sdjxA0/" },
+    { name: "Caleb Instagram Reel", url: "https://www.instagram.com/popular/how-was-hyderabad-merged-into-indian-union/reels/DQJ34sdjxA0/" },
+    { name: "Kids Carnival Hitex", url: "https://www.instagram.com/reel/DEHVEtWJkf1/?hl=en" },
+    { name: "Param Foundation LinkedIn", url: "https://www.linkedin.com/posts/inavamsi_met-this-8-year-old-lakshveer-in-our-hackathon-activity-7418284045475659776-zoBR/" },
+    { name: "Lion Circuits", url: "https://x.com/LionCircuits/status/1950132910667026934" },
+    
+    // Event Listings
+    { name: "August Fest 2025 Speaker", url: "https://theaugustfest.com/speaker/r-lakshveer-rao/" },
   ],
   
   // Social links

@@ -142,12 +142,16 @@ const mentors: Mentor[] = [
 
 // As Featured In - Media coverage
 const featuredIn = [
-  { name: "Adil Mania", href: "https://x.com/adilmania/status/1998158073027043345" },
+  { name: "Financial Express", href: "https://www.financialexpress.com/life/technology-meet-lakshveer-the-8-year-old-who-created-an-ai-agent-to-control-devices-via-telegram-messaging-4159964/" },
+  { name: "Jagran Josh", href: "https://www.jagranjosh.com/articles/yugaantar-2025-student-led-festival-at-sst-blends-technology-competition-and-culture-1800007602-1" },
+  { name: "August Fest 2025", href: "https://theaugustfest.com/speaker/r-lakshveer-rao/" },
   { name: "Beats in Brief", href: "https://beatsinbrief.com/2026/01/11/lakshveer-rao-8-year-old-hardware-startup-founder-india/" },
-  { name: "Runtime", href: "https://www.instagram.com/reel/DQJ34sdjxA0/" },
-  { name: "Lion Circuits", href: "https://x.com/LionCircuits/status/1950132910667026934" },
+  { name: "Medium", href: "https://medium.com/@sharavarora80/meet-indias-8-year-old-tech-wunderkind-how-lakshveer-rao-is-redefining-childhood-innovation-9b76c12da34e" },
+  { name: "Chekodi", href: "https://chekodi.com/p/meet-lakshveer-rao-just-8-years-age-lo-hardware-s-96384" },
   { name: "ThinkTac", href: "https://www.youtube.com/watch?v=8qmvDz-TJTE" },
-  { name: "Maverick News", href: "https://mavericknews30.com/?p=103498" },
+  { name: "Param Foundation", href: "https://www.linkedin.com/posts/inavamsi_met-this-8-year-old-lakshveer-in-our-hackathon-activity-7418284045475659776-zoBR/" },
+  { name: "Lion Circuits", href: "https://x.com/LionCircuits/status/1950132910667026934" },
+  { name: "Adil Mania", href: "https://x.com/adilmania/status/1998158073027043345" },
 ];
 
 // Tech Stack - Hardware, Software, AI/LLM Platforms
