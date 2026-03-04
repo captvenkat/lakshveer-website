@@ -655,6 +655,87 @@ export const nodes: UniverseNode[] = [
     weight: 35,
     reach: 30000
   },
+  {
+    id: 'sravya-interview',
+    label: 'Sravya Interview',
+    type: 'media',
+    description: 'Facebook video interview feature.',
+    url: 'https://www.facebook.com/watch/?v=911725544741111',
+    weight: 35,
+    reach: 25000
+  },
+  {
+    id: 'kids-carnival-hitex',
+    label: 'Kids Carnival Hitex',
+    type: 'media',
+    description: 'Instagram reel from kids carnival event.',
+    url: 'https://www.instagram.com/reel/DEHVEtWJkf1/?hl=en',
+    weight: 30,
+    reach: 15000
+  },
+  {
+    id: 'jagran-josh-scaler',
+    label: 'Jagran Josh',
+    type: 'media',
+    description: 'Coverage of Yugaantar 2025 at Scaler School of Technology.',
+    url: 'https://www.jagranjosh.com/articles/yugaantar-2025-student-led-festival-at-sst-blends-technology-competition-and-culture-1800007602-1',
+    weight: 40,
+    reach: 200000
+  },
+  {
+    id: 'august-fest-speaker',
+    label: 'August Fest 2025',
+    type: 'media',
+    description: 'Listed as speaker at August Fest 2025.',
+    url: 'https://theaugustfest.com/speaker/r-lakshveer-rao/',
+    weight: 45,
+    reach: 50000
+  },
+  {
+    id: 'chekodi-telugu',
+    label: 'Chekodi Telugu',
+    type: 'media',
+    description: 'Telugu media coverage of 8-year-old hardware founder.',
+    url: 'https://chekodi.com/p/meet-lakshveer-rao-just-8-years-age-lo-hardware-s-96384',
+    weight: 35,
+    reach: 40000
+  },
+  {
+    id: 'param-foundation-inav',
+    label: 'Param Foundation',
+    type: 'media',
+    description: 'LinkedIn post by Inav Amsi about meeting at hackathon.',
+    url: 'https://www.linkedin.com/posts/inavamsi_met-this-8-year-old-lakshveer-in-our-hackathon-activity-7418284045475659776-zoBR/',
+    weight: 30,
+    reach: 10000
+  },
+  {
+    id: 'financial-express-scaler',
+    label: 'Financial Express (Scaler)',
+    type: 'media',
+    description: 'Coverage of Scaler School tech fest.',
+    url: 'https://www.financialexpress.com/jobs-career/education-scaler-school-of-technology-hosts-student-led-tech-fest-draws-massive-crowd-4114508/',
+    weight: 50,
+    reach: 500000
+  },
+  {
+    id: 'financial-express-motionx',
+    label: 'Financial Express (MotionX)',
+    type: 'media',
+    description: 'Feature on AI agent to control devices via Telegram.',
+    url: 'https://www.financialexpress.com/life/technology-meet-lakshveer-the-8-year-old-who-created-an-ai-agent-to-control-devices-via-telegram-messaging-4159964/',
+    weight: 50,
+    reach: 500000
+  },
+  {
+    id: 'caleb-insta-reel',
+    label: 'Caleb Instagram',
+    type: 'media',
+    description: 'Instagram reel feature by Caleb.',
+    url: 'https://www.instagram.com/popular/how-was-hyderabad-merged-into-indian-union/reels/DQJ34sdjxA0/',
+    weight: 30,
+    reach: 20000
+  },
 
   // ========== MENTORS/SUPPORTERS (Key ones) ==========
   {
@@ -975,6 +1056,19 @@ export const edges: UniverseEdge[] = [
   { source: 'startupnews-fyi', target: 'lakshveer', relation: 'featured', weight: 40 },
   { source: 'thinktac', target: 'lakshveer', relation: 'interviewed', weight: 35 },
   { source: 'medium-feature', target: 'lakshveer', relation: 'profiled', weight: 35 },
+  { source: 'sravya-interview', target: 'lakshveer', relation: 'interviewed', weight: 35 },
+  { source: 'kids-carnival-hitex', target: 'lakshveer', relation: 'featured', weight: 30 },
+  { source: 'jagran-josh-scaler', target: 'lakshveer', relation: 'covered', weight: 40 },
+  { source: 'jagran-josh-scaler', target: 'yugaantar-2025', relation: 'covered event', weight: 40 },
+  { source: 'august-fest-speaker', target: 'lakshveer', relation: 'listed speaker', weight: 45 },
+  { source: 'chekodi-telugu', target: 'lakshveer', relation: 'featured', weight: 35 },
+  { source: 'param-foundation-inav', target: 'lakshveer', relation: 'highlighted', weight: 30 },
+  { source: 'param-foundation-inav', target: 'param-foundation', relation: 'by organization', weight: 40 },
+  { source: 'financial-express-scaler', target: 'lakshveer', relation: 'covered', weight: 50 },
+  { source: 'financial-express-scaler', target: 'yugaantar-2025', relation: 'covered event', weight: 50 },
+  { source: 'financial-express-motionx', target: 'lakshveer', relation: 'featured', weight: 50 },
+  { source: 'financial-express-motionx', target: 'motionx', relation: 'featured project', weight: 50 },
+  { source: 'caleb-insta-reel', target: 'lakshveer', relation: 'featured', weight: 30 },
   
   // Mentor relationships
   { source: 'aniruddha-malpani', target: 'lakshveer', relation: 'mentors', weight: 50 },
